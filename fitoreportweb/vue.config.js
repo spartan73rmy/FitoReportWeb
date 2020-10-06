@@ -1,10 +1,10 @@
 module.exports = {
   pwa: {
-    name: 'FitoReporte',
-    themeColor: '#122DE0',
-    msTileColor: '#AA3939',
+    name: "FitoReporte",
+    themeColor: "#122DE0",
+    msTileColor: "#AA3939",
     manifestOptions: {
-      background_color: '#FFFFFF'
+      background_color: "#FFFFFF"
     }
   }
 };
