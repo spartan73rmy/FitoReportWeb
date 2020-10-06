@@ -6,7 +6,7 @@ import * as Api from "@/services/api/api";
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  baseURL: baseUrl,
+  baseURL: baseUrl
 });
 export const cuentaClient = new Api.CuentaClient(baseUrl, axiosInstance);
 export const archivoClient = new Api.ArchivosClient(baseUrl, axiosInstance);
@@ -30,5 +30,5 @@ export default {
   plagaClient,
   enfermedadClient,
   etapaClient,
-  axios,
+  axios
 };

@@ -94,7 +94,7 @@ import { IReporteDTO } from "@/services/api/api";
 export default {
   data() {
     return {
-      r: {} as IReporteDTO,
+      r: {} as IReporteDTO
     };
   },
   mounted() {
@@ -109,6 +109,6 @@ export default {
     //     })
     //     .catch((e) => ({}));
     // },
-  },
+  }
 };
 </script>

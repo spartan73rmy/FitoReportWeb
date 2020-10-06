@@ -17,11 +17,11 @@ export default Vue.extend({
   name: "App",
 
   components: {
-    AppBar,
+    AppBar
   },
 
   data: () => ({
     //
-  }),
+  })
 });
 </script>
