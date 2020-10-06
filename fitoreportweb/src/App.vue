@@ -1,32 +1,34 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view />
-  </div>
+  <v-app>
+    <v-card class="overflow-hidden">
+      <AppBar />
+      <v-sheet
+        id="scrolling-techniques-5"
+        class="overflow-y-auto"
+        max-height="700"
+      >
+        <v-container style="height: 1500px;">
+          <v-main>
+            <router-view />
+          </v-main>
+        </v-container>
+      </v-sheet>
+    </v-card>
+  </v-app>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script lang="ts">
+import Vue from "vue";
+import AppBar from "./components/AppBar.vue";
+export default Vue.extend({
+  name: "App",
 
-#nav {
-  padding: 30px;
-}
+  components: {
+    AppBar,
+  },
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
-}
-</style>
+  data: () => ({
+    //
+  }),
+});
+</script>
