@@ -1,94 +1,43 @@
 <template>
   <div>
-    <v-app-bar
-      absolute
-      color="#43a047"
-      dark
-      shrink-on-scroll
-      prominent
-      src="https://picsum.photos/1920/1080?random"
-      fade-img-on-scroll
-      scroll-target="#scrolling-techniques-5"
-      scroll-threshold="100"
-    >
-      <template v-slot:img="{ props }">
-        <v-img
-          v-bind="props"
-          gradient="to top right, rgba(19,84,122,.5), rgba(128,208,199,.8)"
-        ></v-img>
-      </template>
+    <b-navbar toggleable="lg" type="dark" variant="info">
+      <b-navbar-brand to="/">FitoReporte</b-navbar-brand>
 
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+      <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
-      <v-toolbar-title>FitoReporte</v-toolbar-title>
+      <b-collapse id="nav-collapse" is-nav>
+        <b-navbar-nav>
+          <b-nav-item to="/estadistica" disabled>Estadisticas</b-nav-item>
+          <b-nav-item to="/portafolio">Portafolio</b-nav-item>
+          <b-nav-item to="/registro">Registro</b-nav-item>
+          <b-nav-item-dropdown text="Opciones" right>
+            <b-dropdown-item to="/about">Acerca de</b-dropdown-item>
+            <b-dropdown-item to="/contact">Contacto</b-dropdown-item>
+          </b-nav-item-dropdown>
+        </b-navbar-nav>
 
-      <v-spacer></v-spacer>
-
-      <v-btn icon>
-        <v-icon>mdi-magnify</v-icon>
-      </v-btn>
-
-      <v-btn icon>
-        <v-icon>mdi-heart</v-icon>
-      </v-btn>
-
-      <v-btn icon>
-        <v-icon>mdi-dots-vertical</v-icon>
-      </v-btn>
-    </v-app-bar>
-    <v-navigation-drawer v-model="drawer" absolute bottom temporary>
-      <v-list nav dense>
-        <v-list-item-group
-          v-model="group"
-          active-class="deep-purple--text text--accent-4"
-        >
-          <v-list-item link to="/home">
-            <v-list-item-action>
-              <v-icon>mdi-home</v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Inicio</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item router-link to="/addReport">
-            <v-list-item-action>
-              <v-icon>mdi-plus</v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Reporte</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item router-link to="/contact">
-            <v-list-item-action>
-              <v-icon>mdi-email</v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Contacto</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-
-          <v-list-item link to="/about">
-            <v-list-item-action>
-              <v-icon>mdi-account</v-icon>
-            </v-list-item-action>
-            <v-list-item-content>
-              <v-list-item-title>Acerca de</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list-item-group>
-      </v-list>
-    </v-navigation-drawer>
+        <!-- Right aligned nav items -->
+        <b-navbar-nav class="ml-auto">
+          <b-nav-form>
+            <b-form-input
+              size="sm"
+              class="mr-sm-2"
+              placeholder="Buscar reporte"
+            ></b-form-input>
+            <b-button size="sm" class="my-2 my-sm-0" type="submit"
+              >Buscar</b-button
+            >
+          </b-nav-form>
+          <b-nav-item-dropdown right>
+            <!-- Using 'button-content' slot -->
+            <template v-slot:button-content>
+              <em>Usuario</em>
+            </template>
+            <b-dropdown-item href="#">Perfil</b-dropdown-item>
+            <b-dropdown-item href="#">Log Out</b-dropdown-item>
+          </b-nav-item-dropdown>
+        </b-navbar-nav>
+      </b-collapse>
+    </b-navbar>
   </div>
 </template>
-<script lang="ts">
-import Vue from "vue";
-export default Vue.extend({
-  name: "AppBar",
-  components: {},
-  data: () => ({
-    drawer: false,
-  }),
-});
-</script>
