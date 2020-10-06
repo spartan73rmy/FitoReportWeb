@@ -6,7 +6,6 @@
 </template>
 <script lang="ts">
 import Vue from "vue";
-import { ReporteClient } from "../api/api";
 
 export default Vue.extend({});
 </script>
