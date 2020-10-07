@@ -1,12 +1,11 @@
 <template>
   <v-app>
-    <v-main>
-      <AppBar />
-      <v-container>
-        <br /><br /><br />
-        <router-view />
-      </v-container>
-    </v-main>
+    <AppBar />
+    <v-content>
+      <br /><br /><br />
+      <router-view :key="$route.fullPath"></router-view>
+      <AlertMessage />
+    </v-content>
   </v-app>
 </template>
 
@@ -17,11 +16,11 @@ export default Vue.extend({
   name: "App",
 
   components: {
-    AppBar
+    AppBar,
   },
 
   data: () => ({
     //
-  })
+  }),
 });
 </script>

@@ -10,22 +10,22 @@
 
     <table style="width: 100%">
       <tr>
-        <td>Lugar y Fecha:{{ this.r }}</td>
+        <!-- <td>Lugar y Fecha:{{ this.report.idReport }}</td> -->
       </tr>
       <tr>
-        <td>Nombre del produtor:</td>
+        <td>Nombre del produtor:{{ report.produtor }}</td>
       </tr>
       <tr>
-        <td>Ubicacion:</td>
+        <td>Ubicacion:{{ report.Ubicacion }}</td>
       </tr>
       <tr>
-        <td>Nombre del predio:</td>
+        <td>Nombre del predio:{{ report.predio }}</td>
       </tr>
       <tr>
-        <td>Cultivo:</td>
+        <td>Cultivo:{{ report.Cultivo }}</td>
       </tr>
       <tr>
-        <td>Etapa Fenologica:</td>
+        <td>Etapa Fenologica:{{ report.Etapa }}</td>
       </tr>
       <tr>
         <td>Enfermedades:</td>
@@ -38,7 +38,7 @@
     <br />
     <table>
       <tr>
-        <td>Observaciones:</td>
+        <td>Observaciones:{{ report.Observaciones }}</td>
       </tr>
     </table>
 
@@ -47,7 +47,7 @@
 
     <h2>Aspersión Foliar</h2>
     <p style="text-align: left">
-      RECOMENDACION: Para cada ( 100 ) Litros de agua
+      RECOMENDACION: Para cada ( {{ report.Litros }} ) Litros de agua
     </p>
 
     <table style="width: 100%">
@@ -88,27 +88,32 @@
 </template>
 
 <script lang="ts">
+import Vue from "vue";
 import { reporteClient } from "@/services/api/api.service";
-import { IReporteDTO } from "@/services/api/api";
+import { GetReporteResponse } from "@/services/api/api";
 
-export default {
-  data() {
+export default Vue.extend({
+  name: "Detalles",
+  data: function() {
     return {
-      r: {} as IReporteDTO
+      report: {} as GetReporteResponse
     };
   },
-  mounted() {
-    // this.fetchData();
+  computed: {
+    isLoading(): boolean {
+      return !this.report.idReport;
+    }
   },
   methods: {
-    // async fetchData() {
-    //   const reporte = await reporteClient
-    //     .get(1)
-    //     .then((value) => {
-    //       this.r = value;
-    //     })
-    //     .catch((e) => ({}));
-    // },
+    async fetchData() {
+      await reporteClient.get(1).then(reporte => {
+        this.report = reporte;
+      });
+    }
+  },
+
+  mounted(): void {
+    this.fetchData();
   }
-};
+});
 </script>

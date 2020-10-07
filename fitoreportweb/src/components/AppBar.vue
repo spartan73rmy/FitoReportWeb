@@ -33,7 +33,7 @@
             <template v-slot:button-content>
               <em>Usuario</em>
             </template>
-            <b-dropdown-item href="#">Perfil</b-dropdown-item>
+            <b-dropdown-item to="/login">Perfil</b-dropdown-item>
             <b-dropdown-item href="#">Log Out</b-dropdown-item>
           </b-nav-item-dropdown>
         </b-navbar-nav>
