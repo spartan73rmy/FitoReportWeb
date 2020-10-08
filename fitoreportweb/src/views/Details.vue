@@ -10,35 +10,35 @@
 
     <table style="width: 100%">
       <tr>
-        <!-- <td>Lugar y Fecha:{{ this.report.idReport }}</td> -->
+        <td>Lugar y Fecha:{{ report.lugar }}</td>
       </tr>
       <tr>
-        <td>Nombre del produtor:{{ report.produtor }}</td>
+        <td>Nombre del produtor:{{ report.productor }}</td>
       </tr>
       <tr>
-        <td>Ubicacion:{{ report.Ubicacion }}</td>
+        <td>Ubicacion:{{ report.ubicacion }}</td>
       </tr>
       <tr>
         <td>Nombre del predio:{{ report.predio }}</td>
       </tr>
       <tr>
-        <td>Cultivo:{{ report.Cultivo }}</td>
+        <td>Cultivo:{{ report.cultivo }}</td>
       </tr>
       <tr>
-        <td>Etapa Fenologica:{{ report.Etapa }}</td>
+        <td>Etapa Fenologica:{{ report.etapaFenologica }}</td>
       </tr>
       <tr>
-        <td>Enfermedades:</td>
+        <td>Enfermedades:{{ e }}</td>
       </tr>
       <tr>
-        <td>Plagas:</td>
+        <td>Plagas:{{ p }}</td>
       </tr>
     </table>
 
     <br />
     <table>
       <tr>
-        <td>Observaciones:{{ report.Observaciones }}</td>
+        <td>Observaciones:{{ report.observaciones }}</td>
       </tr>
     </table>
 
@@ -47,27 +47,17 @@
 
     <h2>Aspersión Foliar</h2>
     <p style="text-align: left">
-      RECOMENDACION: Para cada ( {{ report.Litros }} ) Litros de agua
+      RECOMENDACION: Para cada ( {{ report.litros }} ) Litros de agua
     </p>
+    <b-table
+      :items="items"
+      :fields="fields"
+      :sort-by.sync="sortBy"
+      :sort-desc.sync="sortDesc"
+      sort-icon-left
+      responsive="sm"
+    ></b-table>
 
-    <table style="width: 100%">
-      <tr>
-        <th>Cantidad</th>
-        <th>Producto</th>
-        <th>Ingrediente Activo</th>
-        <th>Concentracion %</th>
-        <th>Intervalo de Seguridad</th>
-      </tr>
-      <tr>
-        <td>100</td>
-        <td>Cal</td>
-        <td>Calcio</td>
-        <td>80%</td>
-        <td>0 Dias</td>
-      </tr>
-    </table>
-
-    <br /><br />
     <br /><br />
     <h3>ELVIN MISAEL GALVAN GUERRERO</h3>
     <h4>Ingeniero Agronomo Fruticultor</h4>
@@ -83,37 +73,67 @@
     <p>
       <b>354 110 2486</b>
     </p>
-    <br /><br /><br />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
 import { reporteClient } from "@/services/api/api.service";
-import { GetReporteResponse } from "@/services/api/api";
+import { GetReporteResponse, ProductoDTO2 } from "@/services/api/api";
+import { forIn } from "lodash";
 
 export default Vue.extend({
-  name: "Detalles",
+  name: "Details",
+  components: {},
   data: function() {
     return {
-      report: {} as GetReporteResponse
+      snackbar: true,
+      p: "",
+      e: "",
+      report: {} as GetReporteResponse,
+      sortBy: "nombre",
+      sortDesc: false,
+      fields: [
+        { label: "Cantidad", key: "cantidad", sortable: true },
+        { label: "Producto", key: "nombre", sortable: true },
+        {
+          label: "Ingrediente Activo",
+          key: "ingredienteActivo",
+          sortable: true,
+        },
+        { label: "Concentracion", key: "concentracion", sortable: true },
+        {
+          label: "Intervalo de seguridad",
+          key: "intervaloSeguridad",
+          sortable: true,
+        },
+      ],
+      items: [] as ProductoDTO2[],
     };
   },
   computed: {
     isLoading(): boolean {
       return !this.report.idReport;
-    }
+    },
   },
   methods: {
     async fetchData() {
-      await reporteClient.get(1).then(reporte => {
-        this.report = reporte;
-      });
-    }
+      if (this.$route.params.id) {
+        const idReport = parseInt(this.$route.params.id);
+        await reporteClient.get(idReport).then((reporte) => {
+          this.report = reporte;
+          if (reporte.productos) this.items = reporte.productos;
+          if (reporte.plagas)
+            this.p = reporte.plagas.map((o) => o.nombre).join(", ");
+          if (reporte.enfermedades)
+            this.e = reporte.enfermedades.map((o) => o.nombre).join(", ");
+        });
+      }
+    },
   },
 
   mounted(): void {
     this.fetchData();
-  }
+  },
 });
 </script>

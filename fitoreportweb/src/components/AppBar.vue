@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="AppBar">
     <b-navbar type="dark" class="header" variant="info" fixed="top">
       <b-navbar-brand to="/">FitoReporte</b-navbar-brand>
 
@@ -19,6 +19,8 @@
         <!-- Right aligned nav items -->
         <b-navbar-nav class="ml-auto">
           <b-nav-form>
+            <AlertMessage />
+
             <b-form-input
               size="sm"
               class="mr-sm-2"
@@ -41,3 +43,10 @@
     </b-navbar>
   </div>
 </template>
+
+<script lang="ts">
+import Vue from "vue";
+export default {
+  name: "AppBar",
+};
+</script>

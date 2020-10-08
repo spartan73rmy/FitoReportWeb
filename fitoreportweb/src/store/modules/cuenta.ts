@@ -2,14 +2,14 @@
 
 import {
   IngresarResponse,
-  RefreshCredentialsCommand
+  RefreshCredentialsCommand,
 } from "@/services/api/api";
 import { axiosInstance, cuentaClient as api } from "@/services/api/api.service";
 import { destroyToken, getToken, saveToken } from "@/services/jwt.service";
 import {
   getSavedState,
   removeState,
-  saveState
+  saveState,
 } from "@/services/local-storage.service";
 import { LOGOUT, SET_AUTH } from "@/store/mutation-types";
 import {
@@ -17,7 +17,7 @@ import {
   LOGIN,
   LOGOUT_ACTION,
   REFRESH_CREDENTIALS,
-  REGISTER
+  REGISTER,
 } from "@/store/action-types";
 import { buildSuccess, handleError } from "@/utils/utils";
 import router from "@/router";
@@ -27,10 +27,10 @@ import {
   Dispatch,
   GetterTree,
   Module,
-  MutationTree
+  MutationTree,
 } from "vuex";
 import moment from "moment";
-import { UserAdmin, UserAlumno, UserMaestro } from "@/utils/constants";
+import { UserAdmin, UserProductor, UserIngeniero } from "@/utils/constants";
 
 let refreshing = false;
 let failedQueue: any[] = [];
@@ -40,7 +40,7 @@ interface State {
 }
 
 const processQueue = (error: any, token: string | null | undefined) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -58,8 +58,9 @@ const expirationDate = function() {
 };
 
 const state = {
-  currentUser: getSavedState("auth.currentUser")
+  currentUser: getSavedState("auth.currentUser"),
 } as State;
+
 const mutations = {
   [SET_AUTH](state: State, payload: IngresarResponse) {
     saveState("auth.currentUser", payload.user);
@@ -76,7 +77,7 @@ const mutations = {
     removeState("auth.currentUser");
     removeState("auth.refreshToken");
     removeState("auth.expirationDate");
-  }
+  },
 } as MutationTree<State>;
 
 const getters = {
@@ -85,14 +86,14 @@ const getters = {
     return !!state.currentUser;
   },
   isAlumno(state, getters): boolean {
-    return getters.loggedIn && state.currentUser.tipoUsuario === UserAlumno;
+    return getters.loggedIn && state.currentUser.tipoUsuario === UserProductor;
   },
   isMaestro(state, getters): boolean {
-    return getters.loggedIn && state.currentUser.tipoUsuario === UserMaestro;
+    return getters.loggedIn && state.currentUser.tipoUsuario === UserIngeniero;
   },
   isAdmin(state, getters): boolean {
     return getters.loggedIn && state.currentUser.tipoUsuario === UserAdmin;
-  }
+  },
 } as GetterTree<State, any>;
 
 function setRefreshTokenInterceptor(
@@ -102,7 +103,7 @@ function setRefreshTokenInterceptor(
 ) {
   // TODO Checar que esto funcione bien
   axiosInstance.interceptors.request.use(
-    async config => {
+    async (config) => {
       config.headers.Authorization = "Bearer " + getToken();
 
       // Todas las llamadas a cuenta no se necesita authenticacion
@@ -123,7 +124,7 @@ function setRefreshTokenInterceptor(
               refreshing = false;
               return config;
             })
-            .catch(err => {
+            .catch((err) => {
               refreshing = false;
               processQueue(err, null);
               return Promise.reject(err);
@@ -132,11 +133,11 @@ function setRefreshTokenInterceptor(
           return new Promise(function(resolve, reject) {
             failedQueue.push({ resolve, reject });
           })
-            .then(token => {
+            .then((token) => {
               config.headers.Authorization = `Bearer ${token}`;
               return config;
             })
-            .catch(err => {
+            .catch((err) => {
               processQueue(err, null);
               return Promise.reject(err);
             });
@@ -144,7 +145,7 @@ function setRefreshTokenInterceptor(
       }
       return config;
     },
-    error => {
+    (error) => {
       processQueue(error, null);
       refreshing = false;
       return Promise.reject(error);
@@ -152,18 +153,18 @@ function setRefreshTokenInterceptor(
   );
 
   axiosInstance.interceptors.response.use(
-    response => {
+    (response) => {
       if (response.status < 200 || response.status > 299) {
         const error = {
           message: "Error al consultar informacion",
           name: "Error",
-          response: response
+          response: response,
         };
         handleError(error, commit);
       }
       return response;
     },
-    error => {
+    (error) => {
       handleError(error, commit);
       return Promise.reject(error);
     }
@@ -191,7 +192,7 @@ const actions = {
     const response = await api.refreshCredentials(
       new RefreshCredentialsCommand({
         refreshToken: refreshToken(),
-        token: getToken()
+        token: getToken(),
       })
     );
     commit(SET_AUTH, response);
@@ -204,7 +205,7 @@ const actions = {
   [LOGOUT_ACTION]({ commit }) {
     commit(LOGOUT);
     return router.push("/login");
-  }
+  },
 } as ActionTree<State, any>;
 
 export default {
@@ -212,5 +213,5 @@ export default {
   mutations,
   getters,
   actions,
-  namespaced: true
+  namespaced: true,
 } as Module<State, any>;
