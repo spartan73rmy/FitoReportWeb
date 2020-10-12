@@ -1,6 +1,13 @@
 <template>
   <div id="AppBar">
-    <b-navbar type="dark" class="header" variant="info" fixed="top">
+    <!-- <b-navbar type="dark" toggleable class="header" variant="info" fixed="top"> -->
+    <b-navbar
+      toggleable="lg"
+      type="dark"
+      variant="info"
+      class="navbar-horizontal"
+      fixed="top"
+    >
       <b-navbar-brand to="/">FitoReporte</b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
@@ -21,14 +28,14 @@
           <b-nav-form>
             <AlertMessage />
 
-            <b-form-input
+            <!-- <b-form-input
               size="sm"
               class="mr-sm-2"
               placeholder="Buscar reporte"
             ></b-form-input>
             <b-button size="sm" class="my-2 my-sm-0" type="submit"
               >Buscar</b-button
-            >
+            > -->
           </b-nav-form>
           <b-nav-item-dropdown right>
             <!-- Using 'button-content' slot -->
