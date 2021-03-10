@@ -2,6 +2,7 @@
   <div>
     <AppBar />
     <br /><br />
+    Hola Bienvenido
     <br />
 
     <AlertMessage />

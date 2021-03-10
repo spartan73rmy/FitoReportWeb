@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/precache-manifest.bae28e80a8f2b7e95b70bd78128bfb18.js"
+  "/precache-manifest.ffc36471acb6b124389e2819b759ffce.js"
 );
 
 workbox.core.setCacheNameDetails({prefix: "fitoreportweb"});
