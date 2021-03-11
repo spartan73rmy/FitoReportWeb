@@ -19,14 +19,16 @@ export default Vue.extend({
       this.logout();
       try {
         const result = await cuentaClient.invalidaToken(
-          new InvalidaTokenCommand({
-            refreshToken: refreshToken
-          })
+          new InvalidaTokenCommand()
+          //TODO is not necesarry?
+          //   {
+          //   refreshToken: refreshToken
+          // }
         );
       } catch (e) {
         // console.log(e);
       }
-    }
-  }
+    },
+  },
 });
 </script>

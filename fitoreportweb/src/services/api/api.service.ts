@@ -1,12 +1,13 @@
 export const baseUrl =
   process.env.NODE_ENV === "production"
-    ? "https://fitoreport.com" //TODO add URL
-    : "https://localhost:5001";
+    ? "https://104.131.75.47:4000" //TODO add URL
+    : // : "http://104.131.75.47:4000";
+      "http://localhost:5001";
 import * as Api from "@/services/api/api";
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-  baseURL: baseUrl
+  baseURL: baseUrl,
 });
 export const cuentaClient = new Api.CuentaClient(baseUrl, axiosInstance);
 export const archivoClient = new Api.ArchivosClient(baseUrl, axiosInstance);
@@ -30,5 +31,5 @@ export default {
   plagaClient,
   enfermedadClient,
   etapaClient,
-  axios
+  axios,
 };

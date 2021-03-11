@@ -15,7 +15,13 @@ import axios, {
   CancelToken,
 } from "axios";
 
-export class ReporteClient {
+export interface IReporteClient {
+  agregar(command: AgregarReporteCommand): Promise<AgregarReporteResponse>;
+  get(idReport: number): Promise<GetReporteResponse>;
+  getSearchList(): Promise<GetSearchReportListResponse>;
+}
+
+export class ReporteClient implements IReporteClient {
   private instance: AxiosInstance;
   private baseUrl: string;
   protected jsonParseReviver:
@@ -34,7 +40,7 @@ export class ReporteClient {
     command: AgregarReporteCommand,
     cancelToken?: CancelToken | undefined
   ): Promise<AgregarReporteResponse> {
-    let url_ = this.baseUrl + "/api/Reporte";
+    let url_ = this.baseUrl + "/api/Reporte/Agregar";
     url_ = url_.replace(/[?&]$/, "");
 
     const content_ = JSON.stringify(command);
@@ -94,70 +100,11 @@ export class ReporteClient {
     return Promise.resolve<AgregarReporteResponse>(<any>null);
   }
 
-  getSearchList(
-    cancelToken?: CancelToken | undefined
-  ): Promise<GetSearchReportListResponse> {
-    let url_ = this.baseUrl + "/api/Reporte";
-    url_ = url_.replace(/[?&]$/, "");
-
-    let options_ = <AxiosRequestConfig>{
-      method: "GET",
-      url: url_,
-      headers: {
-        Accept: "application/json",
-      },
-      cancelToken,
-    };
-
-    return this.instance
-      .request(options_)
-      .catch((_error: any) => {
-        if (isAxiosError(_error) && _error.response) {
-          return _error.response;
-        } else {
-          throw _error;
-        }
-      })
-      .then((_response: AxiosResponse) => {
-        return this.processGetSearchList(_response);
-      });
-  }
-
-  protected processGetSearchList(
-    response: AxiosResponse
-  ): Promise<GetSearchReportListResponse> {
-    const status = response.status;
-    let _headers: any = {};
-    if (response.headers && typeof response.headers === "object") {
-      for (let k in response.headers) {
-        if (response.headers.hasOwnProperty(k)) {
-          _headers[k] = response.headers[k];
-        }
-      }
-    }
-    if (status === 200) {
-      const _responseText = response.data;
-      let result200: any = null;
-      let resultData200 = _responseText;
-      result200 = GetSearchReportListResponse.fromJS(resultData200);
-      return result200;
-    } else if (status !== 200 && status !== 204) {
-      const _responseText = response.data;
-      return throwException(
-        "An unexpected server error occurred.",
-        status,
-        _responseText,
-        _headers
-      );
-    }
-    return Promise.resolve<GetSearchReportListResponse>(<any>null);
-  }
-
   get(
     idReport: number,
     cancelToken?: CancelToken | undefined
   ): Promise<GetReporteResponse> {
-    let url_ = this.baseUrl + "/api/Reporte/{idReport}";
+    let url_ = this.baseUrl + "/api/Reporte/Get/{idReport}";
     if (idReport === undefined || idReport === null)
       throw new Error("The parameter 'idReport' must be defined.");
     url_ = url_.replace("{idReport}", encodeURIComponent("" + idReport));
@@ -225,9 +172,81 @@ export class ReporteClient {
     }
     return Promise.resolve<GetReporteResponse>(<any>null);
   }
+
+  getSearchList(
+    cancelToken?: CancelToken | undefined
+  ): Promise<GetSearchReportListResponse> {
+    let url_ = this.baseUrl + "/api/Reporte/GetSearchList";
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_ = <AxiosRequestConfig>{
+      method: "GET",
+      url: url_,
+      headers: {
+        Accept: "application/json",
+      },
+      cancelToken,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processGetSearchList(_response);
+      });
+  }
+
+  protected processGetSearchList(
+    response: AxiosResponse
+  ): Promise<GetSearchReportListResponse> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === "object") {
+      for (let k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = GetSearchReportListResponse.fromJS(resultData200);
+      return result200;
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        "An unexpected server error occurred.",
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<GetSearchReportListResponse>(<any>null);
+  }
 }
 
-export class ArchivosClient {
+export interface IArchivosClient {
+  agregarArchivo(
+    command: FileParameter | null | undefined
+  ): Promise<AgregarArchivoResponse>;
+  generaTokenDescarga(
+    query: TokenDescargaQuery
+  ): Promise<TokenDescargaResponse>;
+  descargarArchivo(
+    hash: string | null,
+    token: string | null | undefined
+  ): Promise<FileResponse>;
+}
+
+export class ArchivosClient implements IArchivosClient {
   private instance: AxiosInstance;
   private baseUrl: string;
   protected jsonParseReviver:
@@ -454,7 +473,25 @@ export class ArchivosClient {
   }
 }
 
-export class CuentaClient {
+export interface ICuentaClient {
+  confirmar(token: string | null | undefined): Promise<ConfirmarEmailResponse>;
+  ingresar(query: GetUsuarioLoginQuery): Promise<IngresarResponse>;
+  refreshCredentials(
+    query: RefreshCredentialsCommand
+  ): Promise<IngresarResponse>;
+  invalidaToken(query: InvalidaTokenCommand): Promise<InvalidaTokenResponse>;
+  recuperaPasswordGeneraToken(
+    query: RecuperaPasswordGeneraTokenCommand
+  ): Promise<RecuperaPasswordGeneraTokenResponse>;
+  recuperaPassword(
+    query: RecuperaPasswordCommand
+  ): Promise<RecuperaPasswordResponse>;
+  ping(): Promise<FileResponse>;
+  createUser(command: CreateUsuarioCommand): Promise<CreateUsuarioResponse>;
+  reenviar(command: ReenviarEmailCommand): Promise<ReenviarEmailResponse>;
+}
+
+export class CuentaClient implements ICuentaClient {
   private instance: AxiosInstance;
   private baseUrl: string;
   protected jsonParseReviver:
@@ -1062,7 +1099,12 @@ export class CuentaClient {
   }
 }
 
-export class EnfermedadClient {
+export interface IEnfermedadClient {
+  getEnfermedades(): Promise<GetEnfermedadesResponse>;
+  delete(id: number): Promise<DeleteEnfermedadResponse>;
+}
+
+export class EnfermedadClient implements IEnfermedadClient {
   private instance: AxiosInstance;
   private baseUrl: string;
   protected jsonParseReviver:
@@ -1080,7 +1122,7 @@ export class EnfermedadClient {
   getEnfermedades(
     cancelToken?: CancelToken | undefined
   ): Promise<GetEnfermedadesResponse> {
-    let url_ = this.baseUrl + "/api/Enfermedad";
+    let url_ = this.baseUrl + "/api/Enfermedad/GetEnfermedades";
     url_ = url_.replace(/[?&]$/, "");
 
     let options_ = <AxiosRequestConfig>{
@@ -1135,9 +1177,89 @@ export class EnfermedadClient {
     }
     return Promise.resolve<GetEnfermedadesResponse>(<any>null);
   }
+
+  delete(
+    id: number,
+    cancelToken?: CancelToken | undefined
+  ): Promise<DeleteEnfermedadResponse> {
+    let url_ = this.baseUrl + "/api/Enfermedad/Delete/{id}";
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_ = <AxiosRequestConfig>{
+      method: "DELETE",
+      url: url_,
+      headers: {
+        Accept: "application/json",
+      },
+      cancelToken,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processDelete(_response);
+      });
+  }
+
+  protected processDelete(
+    response: AxiosResponse
+  ): Promise<DeleteEnfermedadResponse> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === "object") {
+      for (let k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = DeleteEnfermedadResponse.fromJS(resultData200);
+      return result200;
+    } else if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = ProblemDetails.fromJS(resultData404);
+      return throwException(
+        "A server side error occurred.",
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        "An unexpected server error occurred.",
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<DeleteEnfermedadResponse>(<any>null);
+  }
 }
 
-export class EtapaFenologicaClient {
+export interface IEtapaFenologicaClient {
+  getAllEtapas(): Promise<GetEtapaFenologicaListResponse>;
+  delete(id: number): Promise<DeleteEtapaFenologicaResponse>;
+}
+
+export class EtapaFenologicaClient implements IEtapaFenologicaClient {
   private instance: AxiosInstance;
   private baseUrl: string;
   protected jsonParseReviver:
@@ -1155,7 +1277,7 @@ export class EtapaFenologicaClient {
   getAllEtapas(
     cancelToken?: CancelToken | undefined
   ): Promise<GetEtapaFenologicaListResponse> {
-    let url_ = this.baseUrl + "/api/EtapaFenologica";
+    let url_ = this.baseUrl + "/api/EtapaFenologica/GetAllEtapas";
     url_ = url_.replace(/[?&]$/, "");
 
     let options_ = <AxiosRequestConfig>{
@@ -1210,9 +1332,89 @@ export class EtapaFenologicaClient {
     }
     return Promise.resolve<GetEtapaFenologicaListResponse>(<any>null);
   }
+
+  delete(
+    id: number,
+    cancelToken?: CancelToken | undefined
+  ): Promise<DeleteEtapaFenologicaResponse> {
+    let url_ = this.baseUrl + "/api/EtapaFenologica/Delete/{id}";
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_ = <AxiosRequestConfig>{
+      method: "DELETE",
+      url: url_,
+      headers: {
+        Accept: "application/json",
+      },
+      cancelToken,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processDelete(_response);
+      });
+  }
+
+  protected processDelete(
+    response: AxiosResponse
+  ): Promise<DeleteEtapaFenologicaResponse> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === "object") {
+      for (let k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = DeleteEtapaFenologicaResponse.fromJS(resultData200);
+      return result200;
+    } else if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = ProblemDetails.fromJS(resultData404);
+      return throwException(
+        "A server side error occurred.",
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        "An unexpected server error occurred.",
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<DeleteEtapaFenologicaResponse>(<any>null);
+  }
 }
 
-export class PlagaClient {
+export interface IPlagaClient {
+  getPlagas(): Promise<GetPlagasResponse>;
+  delete(id: number): Promise<DeletePlagaResponse>;
+}
+
+export class PlagaClient implements IPlagaClient {
   private instance: AxiosInstance;
   private baseUrl: string;
   protected jsonParseReviver:
@@ -1228,7 +1430,7 @@ export class PlagaClient {
   }
 
   getPlagas(cancelToken?: CancelToken | undefined): Promise<GetPlagasResponse> {
-    let url_ = this.baseUrl + "/api/Plaga";
+    let url_ = this.baseUrl + "/api/Plaga/GetPlagas";
     url_ = url_.replace(/[?&]$/, "");
 
     let options_ = <AxiosRequestConfig>{
@@ -1283,9 +1485,107 @@ export class PlagaClient {
     }
     return Promise.resolve<GetPlagasResponse>(<any>null);
   }
+
+  delete(
+    id: number,
+    cancelToken?: CancelToken | undefined
+  ): Promise<DeletePlagaResponse> {
+    let url_ = this.baseUrl + "/api/Plaga/Delete/{id}";
+    if (id === undefined || id === null)
+      throw new Error("The parameter 'id' must be defined.");
+    url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    url_ = url_.replace(/[?&]$/, "");
+
+    let options_ = <AxiosRequestConfig>{
+      method: "DELETE",
+      url: url_,
+      headers: {
+        Accept: "application/json",
+      },
+      cancelToken,
+    };
+
+    return this.instance
+      .request(options_)
+      .catch((_error: any) => {
+        if (isAxiosError(_error) && _error.response) {
+          return _error.response;
+        } else {
+          throw _error;
+        }
+      })
+      .then((_response: AxiosResponse) => {
+        return this.processDelete(_response);
+      });
+  }
+
+  protected processDelete(
+    response: AxiosResponse
+  ): Promise<DeletePlagaResponse> {
+    const status = response.status;
+    let _headers: any = {};
+    if (response.headers && typeof response.headers === "object") {
+      for (let k in response.headers) {
+        if (response.headers.hasOwnProperty(k)) {
+          _headers[k] = response.headers[k];
+        }
+      }
+    }
+    if (status === 200) {
+      const _responseText = response.data;
+      let result200: any = null;
+      let resultData200 = _responseText;
+      result200 = DeletePlagaResponse.fromJS(resultData200);
+      return result200;
+    } else if (status === 404) {
+      const _responseText = response.data;
+      let result404: any = null;
+      let resultData404 = _responseText;
+      result404 = ProblemDetails.fromJS(resultData404);
+      return throwException(
+        "A server side error occurred.",
+        status,
+        _responseText,
+        _headers,
+        result404
+      );
+    } else if (status !== 200 && status !== 204) {
+      const _responseText = response.data;
+      return throwException(
+        "An unexpected server error occurred.",
+        status,
+        _responseText,
+        _headers
+      );
+    }
+    return Promise.resolve<DeletePlagaResponse>(<any>null);
+  }
 }
 
-export class UsuariosClient {
+export interface IUsuariosClient {
+  getAll(): Promise<GetUsuariosListResponse>;
+  get(id: number): Promise<GetUsuarioDetailResponse>;
+  aproveUser(nombreUsuario: string | null): Promise<AproveUsuarioResponse>;
+  deleteUser(nombreUsuario: string | null): Promise<DeleteUsuarioResponse>;
+  modificarDatos(
+    command: ModificarDatosUsuarioCommand
+  ): Promise<ModificarDatosUsuarioResponse>;
+  modificarEmail(
+    command: ModificarEmailCommand
+  ): Promise<ModificarEmailResponse>;
+  modificarPassword(
+    command: ModificarPasswordCommand
+  ): Promise<ModificarPasswordResponse>;
+  imagenPerfil(
+    command: AgregarImagenPerfilCommand
+  ): Promise<AgregarImagenPerfilResponse>;
+  getImagenPerfil(
+    nombreUsuario: string | null,
+    size: MySize | undefined
+  ): Promise<void>;
+}
+
+export class UsuariosClient implements IUsuariosClient {
   private instance: AxiosInstance;
   private baseUrl: string;
   protected jsonParseReviver:
@@ -1925,21 +2225,12 @@ export class UsuariosClient {
   }
 }
 
-export class AgregarReporteResponse implements IAgregarReporteResponse {
-  id?: number;
-
-  constructor(data?: IAgregarReporteResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class AgregarReporteResponse {
+  id!: number;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
+      this.id = _data["id"];
     }
   }
 
@@ -1952,26 +2243,13 @@ export class AgregarReporteResponse implements IAgregarReporteResponse {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
+    data["id"] = this.id;
     return data;
   }
 }
 
-export interface IAgregarReporteResponse {
-  id?: number;
-}
-
-export class AgregarReporteCommand implements IAgregarReporteCommand {
-  reportes?: ReporteDTO[] | null;
-
-  constructor(data?: IAgregarReporteCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class AgregarReporteCommand {
+  reportes!: ReporteDTO[] | undefined;
 
   init(_data?: any) {
     if (_data) {
@@ -2000,59 +2278,35 @@ export class AgregarReporteCommand implements IAgregarReporteCommand {
   }
 }
 
-export interface IAgregarReporteCommand {
-  reportes?: ReporteDTO[] | null;
-}
-
-export class ReporteDTO implements IReporteDTO {
-  id?: number;
-  lugar?: string | null;
-  productor?: string | null;
-  latitude?: number;
-  longitud?: number;
-  ubicacion?: string | null;
-  predio?: string | null;
-  cultivo?: string | null;
-  etapaFenologica?: string | null;
-  observaciones?: string | null;
-  litros?: number;
-  enfermedades?: EnfermedadDTO[] | null;
-  plagas?: PlagaDTO[] | null;
-  productos?: ProductoDTO[] | null;
-
-  constructor(data?: IReporteDTO) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ReporteDTO {
+  id!: number;
+  lugar!: string | undefined;
+  productor!: string | undefined;
+  latitude!: number;
+  longitud!: number;
+  ubicacion!: string | undefined;
+  predio!: string | undefined;
+  cultivo!: string | undefined;
+  etapaFenologica!: string | undefined;
+  observaciones!: string | undefined;
+  litros!: number;
+  enfermedades!: EnfermedadDTO[] | undefined;
+  plagas!: PlagaDTO[] | undefined;
+  productos!: ProductoDTO[] | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.lugar = _data["lugar"] !== undefined ? _data["lugar"] : <any>null;
-      this.productor =
-        _data["productor"] !== undefined ? _data["productor"] : <any>null;
-      this.latitude =
-        _data["latitude"] !== undefined ? _data["latitude"] : <any>null;
-      this.longitud =
-        _data["longitud"] !== undefined ? _data["longitud"] : <any>null;
-      this.ubicacion =
-        _data["ubicacion"] !== undefined ? _data["ubicacion"] : <any>null;
-      this.predio = _data["predio"] !== undefined ? _data["predio"] : <any>null;
-      this.cultivo =
-        _data["cultivo"] !== undefined ? _data["cultivo"] : <any>null;
-      this.etapaFenologica =
-        _data["etapaFenologica"] !== undefined
-          ? _data["etapaFenologica"]
-          : <any>null;
-      this.observaciones =
-        _data["observaciones"] !== undefined
-          ? _data["observaciones"]
-          : <any>null;
-      this.litros = _data["litros"] !== undefined ? _data["litros"] : <any>null;
+      this.id = _data["id"];
+      this.lugar = _data["lugar"];
+      this.productor = _data["productor"];
+      this.latitude = _data["latitude"];
+      this.longitud = _data["longitud"];
+      this.ubicacion = _data["ubicacion"];
+      this.predio = _data["predio"];
+      this.cultivo = _data["cultivo"];
+      this.etapaFenologica = _data["etapaFenologica"];
+      this.observaciones = _data["observaciones"];
+      this.litros = _data["litros"];
       if (Array.isArray(_data["enfermedades"])) {
         this.enfermedades = [] as any;
         for (let item of _data["enfermedades"])
@@ -2080,21 +2334,17 @@ export class ReporteDTO implements IReporteDTO {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["lugar"] = this.lugar !== undefined ? this.lugar : <any>null;
-    data["productor"] =
-      this.productor !== undefined ? this.productor : <any>null;
-    data["latitude"] = this.latitude !== undefined ? this.latitude : <any>null;
-    data["longitud"] = this.longitud !== undefined ? this.longitud : <any>null;
-    data["ubicacion"] =
-      this.ubicacion !== undefined ? this.ubicacion : <any>null;
-    data["predio"] = this.predio !== undefined ? this.predio : <any>null;
-    data["cultivo"] = this.cultivo !== undefined ? this.cultivo : <any>null;
-    data["etapaFenologica"] =
-      this.etapaFenologica !== undefined ? this.etapaFenologica : <any>null;
-    data["observaciones"] =
-      this.observaciones !== undefined ? this.observaciones : <any>null;
-    data["litros"] = this.litros !== undefined ? this.litros : <any>null;
+    data["id"] = this.id;
+    data["lugar"] = this.lugar;
+    data["productor"] = this.productor;
+    data["latitude"] = this.latitude;
+    data["longitud"] = this.longitud;
+    data["ubicacion"] = this.ubicacion;
+    data["predio"] = this.predio;
+    data["cultivo"] = this.cultivo;
+    data["etapaFenologica"] = this.etapaFenologica;
+    data["observaciones"] = this.observaciones;
+    data["litros"] = this.litros;
     if (Array.isArray(this.enfermedades)) {
       data["enfermedades"] = [];
       for (let item of this.enfermedades)
@@ -2112,40 +2362,14 @@ export class ReporteDTO implements IReporteDTO {
   }
 }
 
-export interface IReporteDTO {
-  id?: number;
-  lugar?: string | null;
-  productor?: string | null;
-  latitude?: number;
-  longitud?: number;
-  ubicacion?: string | null;
-  predio?: string | null;
-  cultivo?: string | null;
-  etapaFenologica?: string | null;
-  observaciones?: string | null;
-  litros?: number;
-  enfermedades?: EnfermedadDTO[] | null;
-  plagas?: PlagaDTO[] | null;
-  productos?: ProductoDTO[] | null;
-}
-
-export class EnfermedadDTO implements IEnfermedadDTO {
-  id?: number;
-  nombre?: string | null;
-
-  constructor(data?: IEnfermedadDTO) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class EnfermedadDTO {
+  id!: number;
+  nombre!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
+      this.id = _data["id"];
+      this.nombre = _data["nombre"];
     }
   }
 
@@ -2158,34 +2382,20 @@ export class EnfermedadDTO implements IEnfermedadDTO {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
+    data["id"] = this.id;
+    data["nombre"] = this.nombre;
     return data;
   }
 }
 
-export interface IEnfermedadDTO {
-  id?: number;
-  nombre?: string | null;
-}
-
-export class PlagaDTO implements IPlagaDTO {
-  id?: number;
-  nombre?: string | null;
-
-  constructor(data?: IPlagaDTO) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class PlagaDTO {
+  id!: number;
+  nombre!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
+      this.id = _data["id"];
+      this.nombre = _data["nombre"];
     }
   }
 
@@ -2198,50 +2408,28 @@ export class PlagaDTO implements IPlagaDTO {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
+    data["id"] = this.id;
+    data["nombre"] = this.nombre;
     return data;
   }
 }
 
-export interface IPlagaDTO {
-  id?: number;
-  nombre?: string | null;
-}
-
-export class ProductoDTO implements IProductoDTO {
-  cantidad?: number;
-  nombre?: string | null;
-  ingredienteActivo?: string | null;
-  concentracion?: string | null;
-  intervaloSeguridad?: string | null;
-
-  constructor(data?: IProductoDTO) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ProductoDTO {
+  cantidad!: number;
+  unidad!: string | undefined;
+  nombre!: string | undefined;
+  ingredienteActivo!: string | undefined;
+  concentracion!: string | undefined;
+  intervaloSeguridad!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.cantidad =
-        _data["cantidad"] !== undefined ? _data["cantidad"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
-      this.ingredienteActivo =
-        _data["ingredienteActivo"] !== undefined
-          ? _data["ingredienteActivo"]
-          : <any>null;
-      this.concentracion =
-        _data["concentracion"] !== undefined
-          ? _data["concentracion"]
-          : <any>null;
-      this.intervaloSeguridad =
-        _data["intervaloSeguridad"] !== undefined
-          ? _data["intervaloSeguridad"]
-          : <any>null;
+      this.cantidad = _data["cantidad"];
+      this.unidad = _data["unidad"];
+      this.nombre = _data["nombre"];
+      this.ingredienteActivo = _data["ingredienteActivo"];
+      this.concentracion = _data["concentracion"];
+      this.intervaloSeguridad = _data["intervaloSeguridad"];
     }
   }
 
@@ -2254,82 +2442,49 @@ export class ProductoDTO implements IProductoDTO {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["cantidad"] = this.cantidad !== undefined ? this.cantidad : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
-    data["ingredienteActivo"] =
-      this.ingredienteActivo !== undefined ? this.ingredienteActivo : <any>null;
-    data["concentracion"] =
-      this.concentracion !== undefined ? this.concentracion : <any>null;
-    data["intervaloSeguridad"] =
-      this.intervaloSeguridad !== undefined
-        ? this.intervaloSeguridad
-        : <any>null;
+    data["cantidad"] = this.cantidad;
+    data["unidad"] = this.unidad;
+    data["nombre"] = this.nombre;
+    data["ingredienteActivo"] = this.ingredienteActivo;
+    data["concentracion"] = this.concentracion;
+    data["intervaloSeguridad"] = this.intervaloSeguridad;
     return data;
   }
 }
 
-export interface IProductoDTO {
-  cantidad?: number;
-  nombre?: string | null;
-  ingredienteActivo?: string | null;
-  concentracion?: string | null;
-  intervaloSeguridad?: string | null;
-}
-
-export class GetReporteResponse implements IGetReporteResponse {
-  idReport?: number;
-  lugar?: string | null;
-  created?: Date;
-  productor?: string | null;
-  latitude?: number;
-  longitud?: number;
-  ubicacion?: string | null;
-  predio?: string | null;
-  cultivo?: string | null;
-  etapaFenologica?: string | null;
-  observaciones?: string | null;
-  litros?: number;
-  enfermedades?: EnfermedadDTO2[] | null;
-  plagas?: PlagaDTO2[] | null;
-  productos?: ProductoDTO2[] | null;
-
-  constructor(data?: IGetReporteResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class GetReporteResponse {
+  idReport!: number;
+  lugar!: string | undefined;
+  created!: Date;
+  productor!: string | undefined;
+  latitude!: number;
+  longitud!: number;
+  ubicacion!: string | undefined;
+  predio!: string | undefined;
+  cultivo!: string | undefined;
+  etapaFenologica!: string | undefined;
+  observaciones!: string | undefined;
+  litros!: number;
+  enfermedades!: EnfermedadDTO2[] | undefined;
+  plagas!: PlagaDTO2[] | undefined;
+  productos!: ProductoDTO2[] | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.idReport =
-        _data["idReport"] !== undefined ? _data["idReport"] : <any>null;
-      this.lugar = _data["lugar"] !== undefined ? _data["lugar"] : <any>null;
+      this.idReport = _data["idReport"];
+      this.lugar = _data["lugar"];
       this.created = _data["created"]
         ? new Date(_data["created"].toString())
-        : <any>null;
-      this.productor =
-        _data["productor"] !== undefined ? _data["productor"] : <any>null;
-      this.latitude =
-        _data["latitude"] !== undefined ? _data["latitude"] : <any>null;
-      this.longitud =
-        _data["longitud"] !== undefined ? _data["longitud"] : <any>null;
-      this.ubicacion =
-        _data["ubicacion"] !== undefined ? _data["ubicacion"] : <any>null;
-      this.predio = _data["predio"] !== undefined ? _data["predio"] : <any>null;
-      this.cultivo =
-        _data["cultivo"] !== undefined ? _data["cultivo"] : <any>null;
-      this.etapaFenologica =
-        _data["etapaFenologica"] !== undefined
-          ? _data["etapaFenologica"]
-          : <any>null;
-      this.observaciones =
-        _data["observaciones"] !== undefined
-          ? _data["observaciones"]
-          : <any>null;
-      this.litros = _data["litros"] !== undefined ? _data["litros"] : <any>null;
+        : <any>undefined;
+      this.productor = _data["productor"];
+      this.latitude = _data["latitude"];
+      this.longitud = _data["longitud"];
+      this.ubicacion = _data["ubicacion"];
+      this.predio = _data["predio"];
+      this.cultivo = _data["cultivo"];
+      this.etapaFenologica = _data["etapaFenologica"];
+      this.observaciones = _data["observaciones"];
+      this.litros = _data["litros"];
       if (Array.isArray(_data["enfermedades"])) {
         this.enfermedades = [] as any;
         for (let item of _data["enfermedades"])
@@ -2357,22 +2512,20 @@ export class GetReporteResponse implements IGetReporteResponse {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["idReport"] = this.idReport !== undefined ? this.idReport : <any>null;
-    data["lugar"] = this.lugar !== undefined ? this.lugar : <any>null;
-    data["created"] = this.created ? this.created.toISOString() : <any>null;
-    data["productor"] =
-      this.productor !== undefined ? this.productor : <any>null;
-    data["latitude"] = this.latitude !== undefined ? this.latitude : <any>null;
-    data["longitud"] = this.longitud !== undefined ? this.longitud : <any>null;
-    data["ubicacion"] =
-      this.ubicacion !== undefined ? this.ubicacion : <any>null;
-    data["predio"] = this.predio !== undefined ? this.predio : <any>null;
-    data["cultivo"] = this.cultivo !== undefined ? this.cultivo : <any>null;
-    data["etapaFenologica"] =
-      this.etapaFenologica !== undefined ? this.etapaFenologica : <any>null;
-    data["observaciones"] =
-      this.observaciones !== undefined ? this.observaciones : <any>null;
-    data["litros"] = this.litros !== undefined ? this.litros : <any>null;
+    data["idReport"] = this.idReport;
+    data["lugar"] = this.lugar;
+    data["created"] = this.created
+      ? this.created.toISOString()
+      : <any>undefined;
+    data["productor"] = this.productor;
+    data["latitude"] = this.latitude;
+    data["longitud"] = this.longitud;
+    data["ubicacion"] = this.ubicacion;
+    data["predio"] = this.predio;
+    data["cultivo"] = this.cultivo;
+    data["etapaFenologica"] = this.etapaFenologica;
+    data["observaciones"] = this.observaciones;
+    data["litros"] = this.litros;
     if (Array.isArray(this.enfermedades)) {
       data["enfermedades"] = [];
       for (let item of this.enfermedades)
@@ -2390,41 +2543,14 @@ export class GetReporteResponse implements IGetReporteResponse {
   }
 }
 
-export interface IGetReporteResponse {
-  idReport?: number;
-  lugar?: string | null;
-  created?: Date;
-  productor?: string | null;
-  latitude?: number;
-  longitud?: number;
-  ubicacion?: string | null;
-  predio?: string | null;
-  cultivo?: string | null;
-  etapaFenologica?: string | null;
-  observaciones?: string | null;
-  litros?: number;
-  enfermedades?: EnfermedadDTO2[] | null;
-  plagas?: PlagaDTO2[] | null;
-  productos?: ProductoDTO2[] | null;
-}
-
-export class EnfermedadDTO2 implements IEnfermedadDTO2 {
-  id?: number;
-  nombre?: string | null;
-
-  constructor(data?: IEnfermedadDTO2) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class EnfermedadDTO2 {
+  id!: number;
+  nombre!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
+      this.id = _data["id"];
+      this.nombre = _data["nombre"];
     }
   }
 
@@ -2437,34 +2563,20 @@ export class EnfermedadDTO2 implements IEnfermedadDTO2 {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
+    data["id"] = this.id;
+    data["nombre"] = this.nombre;
     return data;
   }
 }
 
-export interface IEnfermedadDTO2 {
-  id?: number;
-  nombre?: string | null;
-}
-
-export class PlagaDTO2 implements IPlagaDTO2 {
-  id?: number;
-  nombre?: string | null;
-
-  constructor(data?: IPlagaDTO2) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class PlagaDTO2 {
+  id!: number;
+  nombre!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
+      this.id = _data["id"];
+      this.nombre = _data["nombre"];
     }
   }
 
@@ -2477,50 +2589,26 @@ export class PlagaDTO2 implements IPlagaDTO2 {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
+    data["id"] = this.id;
+    data["nombre"] = this.nombre;
     return data;
   }
 }
 
-export interface IPlagaDTO2 {
-  id?: number;
-  nombre?: string | null;
-}
-
-export class ProductoDTO2 implements IProductoDTO2 {
-  cantidad?: number;
-  nombre?: string | null;
-  ingredienteActivo?: string | null;
-  concentracion?: string | null;
-  intervaloSeguridad?: string | null;
-
-  constructor(data?: IProductoDTO2) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ProductoDTO2 {
+  cantidad!: number;
+  nombre!: string | undefined;
+  ingredienteActivo!: string | undefined;
+  concentracion!: string | undefined;
+  intervaloSeguridad!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.cantidad =
-        _data["cantidad"] !== undefined ? _data["cantidad"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
-      this.ingredienteActivo =
-        _data["ingredienteActivo"] !== undefined
-          ? _data["ingredienteActivo"]
-          : <any>null;
-      this.concentracion =
-        _data["concentracion"] !== undefined
-          ? _data["concentracion"]
-          : <any>null;
-      this.intervaloSeguridad =
-        _data["intervaloSeguridad"] !== undefined
-          ? _data["intervaloSeguridad"]
-          : <any>null;
+      this.cantidad = _data["cantidad"];
+      this.nombre = _data["nombre"];
+      this.ingredienteActivo = _data["ingredienteActivo"];
+      this.concentracion = _data["concentracion"];
+      this.intervaloSeguridad = _data["intervaloSeguridad"];
     }
   }
 
@@ -2533,53 +2621,30 @@ export class ProductoDTO2 implements IProductoDTO2 {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["cantidad"] = this.cantidad !== undefined ? this.cantidad : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
-    data["ingredienteActivo"] =
-      this.ingredienteActivo !== undefined ? this.ingredienteActivo : <any>null;
-    data["concentracion"] =
-      this.concentracion !== undefined ? this.concentracion : <any>null;
-    data["intervaloSeguridad"] =
-      this.intervaloSeguridad !== undefined
-        ? this.intervaloSeguridad
-        : <any>null;
+    data["cantidad"] = this.cantidad;
+    data["nombre"] = this.nombre;
+    data["ingredienteActivo"] = this.ingredienteActivo;
+    data["concentracion"] = this.concentracion;
+    data["intervaloSeguridad"] = this.intervaloSeguridad;
     return data;
   }
 }
 
-export interface IProductoDTO2 {
-  cantidad?: number;
-  nombre?: string | null;
-  ingredienteActivo?: string | null;
-  concentracion?: string | null;
-  intervaloSeguridad?: string | null;
-}
-
-export class ProblemDetails implements IProblemDetails {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  extensions?: { [key: string]: any } | null;
-
-  constructor(data?: IProblemDetails) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ProblemDetails {
+  type!: string | undefined;
+  title!: string | undefined;
+  status!: number | undefined;
+  detail!: string | undefined;
+  instance!: string | undefined;
+  extensions!: { [key: string]: any } | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.type = _data["type"] !== undefined ? _data["type"] : <any>null;
-      this.title = _data["title"] !== undefined ? _data["title"] : <any>null;
-      this.status = _data["status"] !== undefined ? _data["status"] : <any>null;
-      this.detail = _data["detail"] !== undefined ? _data["detail"] : <any>null;
-      this.instance =
-        _data["instance"] !== undefined ? _data["instance"] : <any>null;
+      this.type = _data["type"];
+      this.title = _data["title"];
+      this.status = _data["status"];
+      this.detail = _data["detail"];
+      this.instance = _data["instance"];
       if (_data["extensions"]) {
         this.extensions = {} as any;
         for (let key in _data["extensions"]) {
@@ -2599,46 +2664,24 @@ export class ProblemDetails implements IProblemDetails {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["type"] = this.type !== undefined ? this.type : <any>null;
-    data["title"] = this.title !== undefined ? this.title : <any>null;
-    data["status"] = this.status !== undefined ? this.status : <any>null;
-    data["detail"] = this.detail !== undefined ? this.detail : <any>null;
-    data["instance"] = this.instance !== undefined ? this.instance : <any>null;
+    data["type"] = this.type;
+    data["title"] = this.title;
+    data["status"] = this.status;
+    data["detail"] = this.detail;
+    data["instance"] = this.instance;
     if (this.extensions) {
       data["extensions"] = {};
       for (let key in this.extensions) {
         if (this.extensions.hasOwnProperty(key))
-          data["extensions"][key] =
-            this.extensions[key] !== undefined
-              ? this.extensions[key]
-              : <any>null;
+          data["extensions"][key] = this.extensions[key];
       }
     }
     return data;
   }
 }
 
-export interface IProblemDetails {
-  type?: string | null;
-  title?: string | null;
-  status?: number | null;
-  detail?: string | null;
-  instance?: string | null;
-  extensions?: { [key: string]: any } | null;
-}
-
-export class GetSearchReportListResponse
-  implements IGetSearchReportListResponse {
-  busqueda?: DataSearch[] | null;
-
-  constructor(data?: IGetSearchReportListResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class GetSearchReportListResponse {
+  busqueda!: DataSearch[] | undefined;
 
   init(_data?: any) {
     if (_data) {
@@ -2667,40 +2710,24 @@ export class GetSearchReportListResponse
   }
 }
 
-export interface IGetSearchReportListResponse {
-  busqueda?: DataSearch[] | null;
-}
-
-export class DataSearch implements IDataSearch {
-  idReport?: number;
-  productor?: string | null;
-  lugar?: string | null;
-  predio?: string | null;
-  ubicacion?: string | null;
-  fecha?: Date;
-
-  constructor(data?: IDataSearch) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class DataSearch {
+  idReport!: number;
+  productor!: string | undefined;
+  lugar!: string | undefined;
+  predio!: string | undefined;
+  ubicacion!: string | undefined;
+  fecha!: Date;
 
   init(_data?: any) {
     if (_data) {
-      this.idReport =
-        _data["idReport"] !== undefined ? _data["idReport"] : <any>null;
-      this.productor =
-        _data["productor"] !== undefined ? _data["productor"] : <any>null;
-      this.lugar = _data["lugar"] !== undefined ? _data["lugar"] : <any>null;
-      this.predio = _data["predio"] !== undefined ? _data["predio"] : <any>null;
-      this.ubicacion =
-        _data["ubicacion"] !== undefined ? _data["ubicacion"] : <any>null;
+      this.idReport = _data["idReport"];
+      this.productor = _data["productor"];
+      this.lugar = _data["lugar"];
+      this.predio = _data["predio"];
+      this.ubicacion = _data["ubicacion"];
       this.fecha = _data["fecha"]
         ? new Date(_data["fecha"].toString())
-        : <any>null;
+        : <any>undefined;
     }
   }
 
@@ -2713,42 +2740,22 @@ export class DataSearch implements IDataSearch {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["idReport"] = this.idReport !== undefined ? this.idReport : <any>null;
-    data["productor"] =
-      this.productor !== undefined ? this.productor : <any>null;
-    data["lugar"] = this.lugar !== undefined ? this.lugar : <any>null;
-    data["predio"] = this.predio !== undefined ? this.predio : <any>null;
-    data["ubicacion"] =
-      this.ubicacion !== undefined ? this.ubicacion : <any>null;
-    data["fecha"] = this.fecha ? this.fecha.toISOString() : <any>null;
+    data["idReport"] = this.idReport;
+    data["productor"] = this.productor;
+    data["lugar"] = this.lugar;
+    data["predio"] = this.predio;
+    data["ubicacion"] = this.ubicacion;
+    data["fecha"] = this.fecha ? this.fecha.toISOString() : <any>undefined;
     return data;
   }
 }
 
-export interface IDataSearch {
-  idReport?: number;
-  productor?: string | null;
-  lugar?: string | null;
-  predio?: string | null;
-  ubicacion?: string | null;
-  fecha?: Date;
-}
-
-export class AgregarArchivoResponse implements IAgregarArchivoResponse {
-  hash?: string | null;
-
-  constructor(data?: IAgregarArchivoResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class AgregarArchivoResponse {
+  hash!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.hash = _data["hash"] !== undefined ? _data["hash"] : <any>null;
+      this.hash = _data["hash"];
     }
   }
 
@@ -2761,33 +2768,17 @@ export class AgregarArchivoResponse implements IAgregarArchivoResponse {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["hash"] = this.hash !== undefined ? this.hash : <any>null;
+    data["hash"] = this.hash;
     return data;
   }
 }
 
-export interface IAgregarArchivoResponse {
-  hash?: string | null;
-}
-
-export class TokenDescargaResponse implements ITokenDescargaResponse {
-  tokenDescarga?: string | null;
-
-  constructor(data?: ITokenDescargaResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class TokenDescargaResponse {
+  tokenDescarga!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.tokenDescarga =
-        _data["tokenDescarga"] !== undefined
-          ? _data["tokenDescarga"]
-          : <any>null;
+      this.tokenDescarga = _data["tokenDescarga"];
     }
   }
 
@@ -2800,32 +2791,17 @@ export class TokenDescargaResponse implements ITokenDescargaResponse {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["tokenDescarga"] =
-      this.tokenDescarga !== undefined ? this.tokenDescarga : <any>null;
+    data["tokenDescarga"] = this.tokenDescarga;
     return data;
   }
 }
 
-export interface ITokenDescargaResponse {
-  tokenDescarga?: string | null;
-}
-
-export class TokenDescargaQuery implements ITokenDescargaQuery {
-  hashArchivo?: string | null;
-
-  constructor(data?: ITokenDescargaQuery) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class TokenDescargaQuery {
+  hashArchivo!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.hashArchivo =
-        _data["hashArchivo"] !== undefined ? _data["hashArchivo"] : <any>null;
+      this.hashArchivo = _data["hashArchivo"];
     }
   }
 
@@ -2838,26 +2814,12 @@ export class TokenDescargaQuery implements ITokenDescargaQuery {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["hashArchivo"] =
-      this.hashArchivo !== undefined ? this.hashArchivo : <any>null;
+    data["hashArchivo"] = this.hashArchivo;
     return data;
   }
 }
 
-export interface ITokenDescargaQuery {
-  hashArchivo?: string | null;
-}
-
-export class ConfirmarEmailResponse implements IConfirmarEmailResponse {
-  constructor(data?: IConfirmarEmailResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
-
+export class ConfirmarEmailResponse {
   init(_data?: any) {}
 
   static fromJS(data: any): ConfirmarEmailResponse {
@@ -2873,32 +2835,22 @@ export class ConfirmarEmailResponse implements IConfirmarEmailResponse {
   }
 }
 
-export interface IConfirmarEmailResponse {}
-
-export class IngresarResponse implements IIngresarResponse {
-  user?: UserInfo | null;
-  token?: string | null;
-  refreshToken?: string | null;
-  expirationDate?: Date;
-
-  constructor(data?: IIngresarResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class IngresarResponse {
+  user!: UserInfo | undefined;
+  token!: string | undefined;
+  refreshToken!: string | undefined;
+  expirationDate!: Date;
 
   init(_data?: any) {
     if (_data) {
-      this.user = _data["user"] ? UserInfo.fromJS(_data["user"]) : <any>null;
-      this.token = _data["token"] !== undefined ? _data["token"] : <any>null;
-      this.refreshToken =
-        _data["refreshToken"] !== undefined ? _data["refreshToken"] : <any>null;
+      this.user = _data["user"]
+        ? UserInfo.fromJS(_data["user"])
+        : <any>undefined;
+      this.token = _data["token"];
+      this.refreshToken = _data["refreshToken"];
       this.expirationDate = _data["expirationDate"]
         ? new Date(_data["expirationDate"].toString())
-        : <any>null;
+        : <any>undefined;
     }
   }
 
@@ -2911,53 +2863,30 @@ export class IngresarResponse implements IIngresarResponse {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["user"] = this.user ? this.user.toJSON() : <any>null;
-    data["token"] = this.token !== undefined ? this.token : <any>null;
-    data["refreshToken"] =
-      this.refreshToken !== undefined ? this.refreshToken : <any>null;
+    data["user"] = this.user ? this.user.toJSON() : <any>undefined;
+    data["token"] = this.token;
+    data["refreshToken"] = this.refreshToken;
     data["expirationDate"] = this.expirationDate
       ? this.expirationDate.toISOString()
-      : <any>null;
+      : <any>undefined;
     return data;
   }
 }
 
-export interface IIngresarResponse {
-  user?: UserInfo | null;
-  token?: string | null;
-  refreshToken?: string | null;
-  expirationDate?: Date;
-}
-
-export class UserInfo implements IUserInfo {
-  idUsuario?: number;
-  nombreUsuario?: string | null;
-  email?: string | null;
-  tipoUsuario?: TiposUsuario;
-  refreshToken?: string | null;
-
-  constructor(data?: IUserInfo) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class UserInfo {
+  idUsuario!: number;
+  nombreUsuario!: string | undefined;
+  email!: string | undefined;
+  tipoUsuario!: TiposUsuario;
+  refreshToken!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.idUsuario =
-        _data["idUsuario"] !== undefined ? _data["idUsuario"] : <any>null;
-      this.nombreUsuario =
-        _data["nombreUsuario"] !== undefined
-          ? _data["nombreUsuario"]
-          : <any>null;
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
-      this.tipoUsuario =
-        _data["tipoUsuario"] !== undefined ? _data["tipoUsuario"] : <any>null;
-      this.refreshToken =
-        _data["refreshToken"] !== undefined ? _data["refreshToken"] : <any>null;
+      this.idUsuario = _data["idUsuario"];
+      this.nombreUsuario = _data["nombreUsuario"];
+      this.email = _data["email"];
+      this.tipoUsuario = _data["tipoUsuario"];
+      this.refreshToken = _data["refreshToken"];
     }
   }
 
@@ -2970,53 +2899,30 @@ export class UserInfo implements IUserInfo {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["idUsuario"] =
-      this.idUsuario !== undefined ? this.idUsuario : <any>null;
-    data["nombreUsuario"] =
-      this.nombreUsuario !== undefined ? this.nombreUsuario : <any>null;
-    data["email"] = this.email !== undefined ? this.email : <any>null;
-    data["tipoUsuario"] =
-      this.tipoUsuario !== undefined ? this.tipoUsuario : <any>null;
-    data["refreshToken"] =
-      this.refreshToken !== undefined ? this.refreshToken : <any>null;
+    data["idUsuario"] = this.idUsuario;
+    data["nombreUsuario"] = this.nombreUsuario;
+    data["email"] = this.email;
+    data["tipoUsuario"] = this.tipoUsuario;
+    data["refreshToken"] = this.refreshToken;
     return data;
   }
 }
 
-export interface IUserInfo {
-  idUsuario?: number;
-  nombreUsuario?: string | null;
-  email?: string | null;
-  tipoUsuario?: TiposUsuario;
-  refreshToken?: string | null;
-}
-
 export enum TiposUsuario {
-  User = 0,
   Admin = 1,
+  User = 2,
+  Productor = 3,
+  Visor = 4,
 }
 
-export class GetUsuarioLoginQuery implements IGetUsuarioLoginQuery {
-  nombreUsuario?: string | null;
-  password?: string | null;
-
-  constructor(data?: IGetUsuarioLoginQuery) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class GetUsuarioLoginQuery {
+  nombreUsuario!: string | undefined;
+  password!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.nombreUsuario =
-        _data["nombreUsuario"] !== undefined
-          ? _data["nombreUsuario"]
-          : <any>null;
-      this.password =
-        _data["password"] !== undefined ? _data["password"] : <any>null;
+      this.nombreUsuario = _data["nombreUsuario"];
+      this.password = _data["password"];
     }
   }
 
@@ -3029,36 +2935,20 @@ export class GetUsuarioLoginQuery implements IGetUsuarioLoginQuery {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["nombreUsuario"] =
-      this.nombreUsuario !== undefined ? this.nombreUsuario : <any>null;
-    data["password"] = this.password !== undefined ? this.password : <any>null;
+    data["nombreUsuario"] = this.nombreUsuario;
+    data["password"] = this.password;
     return data;
   }
 }
 
-export interface IGetUsuarioLoginQuery {
-  nombreUsuario?: string | null;
-  password?: string | null;
-}
-
-export class RefreshCredentialsCommand implements IRefreshCredentialsCommand {
-  refreshToken?: string | null;
-  token?: string | null;
-
-  constructor(data?: IRefreshCredentialsCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class RefreshCredentialsCommand {
+  refreshToken!: string | undefined;
+  token!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.refreshToken =
-        _data["refreshToken"] !== undefined ? _data["refreshToken"] : <any>null;
-      this.token = _data["token"] !== undefined ? _data["token"] : <any>null;
+      this.refreshToken = _data["refreshToken"];
+      this.token = _data["token"];
     }
   }
 
@@ -3071,28 +2961,13 @@ export class RefreshCredentialsCommand implements IRefreshCredentialsCommand {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["refreshToken"] =
-      this.refreshToken !== undefined ? this.refreshToken : <any>null;
-    data["token"] = this.token !== undefined ? this.token : <any>null;
+    data["refreshToken"] = this.refreshToken;
+    data["token"] = this.token;
     return data;
   }
 }
 
-export interface IRefreshCredentialsCommand {
-  refreshToken?: string | null;
-  token?: string | null;
-}
-
-export class InvalidaTokenResponse implements IInvalidaTokenResponse {
-  constructor(data?: IInvalidaTokenResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
-
+export class InvalidaTokenResponse {
   init(_data?: any) {}
 
   static fromJS(data: any): InvalidaTokenResponse {
@@ -3108,24 +2983,12 @@ export class InvalidaTokenResponse implements IInvalidaTokenResponse {
   }
 }
 
-export interface IInvalidaTokenResponse {}
-
-export class InvalidaTokenCommand implements IInvalidaTokenCommand {
-  refreshToken?: string | null;
-
-  constructor(data?: IInvalidaTokenCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class InvalidaTokenCommand {
+  refreshToken!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.refreshToken =
-        _data["refreshToken"] !== undefined ? _data["refreshToken"] : <any>null;
+      this.refreshToken = _data["refreshToken"];
     }
   }
 
@@ -3138,27 +3001,12 @@ export class InvalidaTokenCommand implements IInvalidaTokenCommand {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["refreshToken"] =
-      this.refreshToken !== undefined ? this.refreshToken : <any>null;
+    data["refreshToken"] = this.refreshToken;
     return data;
   }
 }
 
-export interface IInvalidaTokenCommand {
-  refreshToken?: string | null;
-}
-
-export class RecuperaPasswordGeneraTokenResponse
-  implements IRecuperaPasswordGeneraTokenResponse {
-  constructor(data?: IRecuperaPasswordGeneraTokenResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
-
+export class RecuperaPasswordGeneraTokenResponse {
   init(_data?: any) {}
 
   static fromJS(data: any): RecuperaPasswordGeneraTokenResponse {
@@ -3174,24 +3022,12 @@ export class RecuperaPasswordGeneraTokenResponse
   }
 }
 
-export interface IRecuperaPasswordGeneraTokenResponse {}
-
-export class RecuperaPasswordGeneraTokenCommand
-  implements IRecuperaPasswordGeneraTokenCommand {
-  email?: string | null;
-
-  constructor(data?: IRecuperaPasswordGeneraTokenCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class RecuperaPasswordGeneraTokenCommand {
+  email!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
+      this.email = _data["email"];
     }
   }
 
@@ -3204,25 +3040,12 @@ export class RecuperaPasswordGeneraTokenCommand
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["email"] = this.email !== undefined ? this.email : <any>null;
+    data["email"] = this.email;
     return data;
   }
 }
 
-export interface IRecuperaPasswordGeneraTokenCommand {
-  email?: string | null;
-}
-
-export class RecuperaPasswordResponse implements IRecuperaPasswordResponse {
-  constructor(data?: IRecuperaPasswordResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
-
+export class RecuperaPasswordResponse {
   init(_data?: any) {}
 
   static fromJS(data: any): RecuperaPasswordResponse {
@@ -3238,26 +3061,14 @@ export class RecuperaPasswordResponse implements IRecuperaPasswordResponse {
   }
 }
 
-export interface IRecuperaPasswordResponse {}
-
-export class RecuperaPasswordCommand implements IRecuperaPasswordCommand {
-  token?: string | null;
-  password?: string | null;
-
-  constructor(data?: IRecuperaPasswordCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class RecuperaPasswordCommand {
+  token!: string | undefined;
+  password!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.token = _data["token"] !== undefined ? _data["token"] : <any>null;
-      this.password =
-        _data["password"] !== undefined ? _data["password"] : <any>null;
+      this.token = _data["token"];
+      this.password = _data["password"];
     }
   }
 
@@ -3270,35 +3081,18 @@ export class RecuperaPasswordCommand implements IRecuperaPasswordCommand {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["token"] = this.token !== undefined ? this.token : <any>null;
-    data["password"] = this.password !== undefined ? this.password : <any>null;
+    data["token"] = this.token;
+    data["password"] = this.password;
     return data;
   }
 }
 
-export interface IRecuperaPasswordCommand {
-  token?: string | null;
-  password?: string | null;
-}
-
-export abstract class NotificationResponse implements INotificationResponse {
-  notificationMessage?: string | null;
-
-  constructor(data?: INotificationResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export abstract class NotificationResponse {
+  notificationMessage!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.notificationMessage =
-        _data["notificationMessage"] !== undefined
-          ? _data["notificationMessage"]
-          : <any>null;
+      this.notificationMessage = _data["notificationMessage"];
     }
   }
 
@@ -3311,49 +3105,28 @@ export abstract class NotificationResponse implements INotificationResponse {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["notificationMessage"] =
-      this.notificationMessage !== undefined
-        ? this.notificationMessage
-        : <any>null;
+    data["notificationMessage"] = this.notificationMessage;
     return data;
   }
 }
 
-export interface INotificationResponse {
-  notificationMessage?: string | null;
-}
-
-export class CreateUsuarioResponse extends NotificationResponse
-  implements ICreateUsuarioResponse {
-  id?: number;
-  email?: string | null;
-  nombreUsuario?: string | null;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-
-  constructor(data?: ICreateUsuarioResponse) {
-    super(data);
-  }
+export class CreateUsuarioResponse extends NotificationResponse {
+  id!: number;
+  email!: string | undefined;
+  nombreUsuario!: string | undefined;
+  nombre!: string | undefined;
+  apellidoPaterno!: string | undefined;
+  apellidoMaterno!: string | undefined;
 
   init(_data?: any) {
     super.init(_data);
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
-      this.nombreUsuario =
-        _data["nombreUsuario"] !== undefined
-          ? _data["nombreUsuario"]
-          : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
-      this.apellidoPaterno =
-        _data["apellidoPaterno"] !== undefined
-          ? _data["apellidoPaterno"]
-          : <any>null;
-      this.apellidoMaterno =
-        _data["apellidoMaterno"] !== undefined
-          ? _data["apellidoMaterno"]
-          : <any>null;
+      this.id = _data["id"];
+      this.email = _data["email"];
+      this.nombreUsuario = _data["nombreUsuario"];
+      this.nombre = _data["nombre"];
+      this.apellidoPaterno = _data["apellidoPaterno"];
+      this.apellidoMaterno = _data["apellidoMaterno"];
     }
   }
 
@@ -3366,67 +3139,35 @@ export class CreateUsuarioResponse extends NotificationResponse
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["email"] = this.email !== undefined ? this.email : <any>null;
-    data["nombreUsuario"] =
-      this.nombreUsuario !== undefined ? this.nombreUsuario : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
-    data["apellidoPaterno"] =
-      this.apellidoPaterno !== undefined ? this.apellidoPaterno : <any>null;
-    data["apellidoMaterno"] =
-      this.apellidoMaterno !== undefined ? this.apellidoMaterno : <any>null;
+    data["id"] = this.id;
+    data["email"] = this.email;
+    data["nombreUsuario"] = this.nombreUsuario;
+    data["nombre"] = this.nombre;
+    data["apellidoPaterno"] = this.apellidoPaterno;
+    data["apellidoMaterno"] = this.apellidoMaterno;
     super.toJSON(data);
     return data;
   }
 }
 
-export interface ICreateUsuarioResponse extends INotificationResponse {
-  id?: number;
-  email?: string | null;
-  nombreUsuario?: string | null;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-}
-
-export class CreateUsuarioCommand implements ICreateUsuarioCommand {
-  nombreUsuario?: string | null;
-  email?: string | null;
-  password?: string | null;
-  tipoUsuario?: number;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-
-  constructor(data?: ICreateUsuarioCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class CreateUsuarioCommand {
+  nombreUsuario!: string | undefined;
+  email!: string | undefined;
+  password!: string | undefined;
+  tipoUsuario!: number;
+  nombre!: string | undefined;
+  apellidoPaterno!: string | undefined;
+  apellidoMaterno!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.nombreUsuario =
-        _data["nombreUsuario"] !== undefined
-          ? _data["nombreUsuario"]
-          : <any>null;
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
-      this.password =
-        _data["password"] !== undefined ? _data["password"] : <any>null;
-      this.tipoUsuario =
-        _data["tipoUsuario"] !== undefined ? _data["tipoUsuario"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
-      this.apellidoPaterno =
-        _data["apellidoPaterno"] !== undefined
-          ? _data["apellidoPaterno"]
-          : <any>null;
-      this.apellidoMaterno =
-        _data["apellidoMaterno"] !== undefined
-          ? _data["apellidoMaterno"]
-          : <any>null;
+      this.nombreUsuario = _data["nombreUsuario"];
+      this.email = _data["email"];
+      this.password = _data["password"];
+      this.tipoUsuario = _data["tipoUsuario"];
+      this.nombre = _data["nombre"];
+      this.apellidoPaterno = _data["apellidoPaterno"];
+      this.apellidoMaterno = _data["apellidoMaterno"];
     }
   }
 
@@ -3439,51 +3180,30 @@ export class CreateUsuarioCommand implements ICreateUsuarioCommand {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["nombreUsuario"] =
-      this.nombreUsuario !== undefined ? this.nombreUsuario : <any>null;
-    data["email"] = this.email !== undefined ? this.email : <any>null;
-    data["password"] = this.password !== undefined ? this.password : <any>null;
-    data["tipoUsuario"] =
-      this.tipoUsuario !== undefined ? this.tipoUsuario : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
-    data["apellidoPaterno"] =
-      this.apellidoPaterno !== undefined ? this.apellidoPaterno : <any>null;
-    data["apellidoMaterno"] =
-      this.apellidoMaterno !== undefined ? this.apellidoMaterno : <any>null;
+    data["nombreUsuario"] = this.nombreUsuario;
+    data["email"] = this.email;
+    data["password"] = this.password;
+    data["tipoUsuario"] = this.tipoUsuario;
+    data["nombre"] = this.nombre;
+    data["apellidoPaterno"] = this.apellidoPaterno;
+    data["apellidoMaterno"] = this.apellidoMaterno;
     return data;
   }
 }
 
-export interface ICreateUsuarioCommand {
-  nombreUsuario?: string | null;
-  email?: string | null;
-  password?: string | null;
-  tipoUsuario?: number;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-}
-
-export class ReenviarEmailResponse extends NotificationResponse
-  implements IReenviarEmailResponse {
-  email?: string | null;
-  confirmado?: boolean;
-  tipoUsuario?: TiposUsuario;
-  token?: string | null;
-
-  constructor(data?: IReenviarEmailResponse) {
-    super(data);
-  }
+export class ReenviarEmailResponse extends NotificationResponse {
+  email!: string | undefined;
+  confirmado!: boolean;
+  tipoUsuario!: TiposUsuario;
+  token!: string | undefined;
 
   init(_data?: any) {
     super.init(_data);
     if (_data) {
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
-      this.confirmado =
-        _data["confirmado"] !== undefined ? _data["confirmado"] : <any>null;
-      this.tipoUsuario =
-        _data["tipoUsuario"] !== undefined ? _data["tipoUsuario"] : <any>null;
-      this.token = _data["token"] !== undefined ? _data["token"] : <any>null;
+      this.email = _data["email"];
+      this.confirmado = _data["confirmado"];
+      this.tipoUsuario = _data["tipoUsuario"];
+      this.token = _data["token"];
     }
   }
 
@@ -3496,39 +3216,21 @@ export class ReenviarEmailResponse extends NotificationResponse
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["email"] = this.email !== undefined ? this.email : <any>null;
-    data["confirmado"] =
-      this.confirmado !== undefined ? this.confirmado : <any>null;
-    data["tipoUsuario"] =
-      this.tipoUsuario !== undefined ? this.tipoUsuario : <any>null;
-    data["token"] = this.token !== undefined ? this.token : <any>null;
+    data["email"] = this.email;
+    data["confirmado"] = this.confirmado;
+    data["tipoUsuario"] = this.tipoUsuario;
+    data["token"] = this.token;
     super.toJSON(data);
     return data;
   }
 }
 
-export interface IReenviarEmailResponse extends INotificationResponse {
-  email?: string | null;
-  confirmado?: boolean;
-  tipoUsuario?: TiposUsuario;
-  token?: string | null;
-}
-
-export class ReenviarEmailCommand implements IReenviarEmailCommand {
-  email?: string | null;
-
-  constructor(data?: IReenviarEmailCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ReenviarEmailCommand {
+  email!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
+      this.email = _data["email"];
     }
   }
 
@@ -3541,26 +3243,13 @@ export class ReenviarEmailCommand implements IReenviarEmailCommand {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["email"] = this.email !== undefined ? this.email : <any>null;
+    data["email"] = this.email;
     return data;
   }
 }
 
-export interface IReenviarEmailCommand {
-  email?: string | null;
-}
-
-export class GetEnfermedadesResponse implements IGetEnfermedadesResponse {
-  enfermedades?: EnfermedadLookupModel[] | null;
-
-  constructor(data?: IGetEnfermedadesResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class GetEnfermedadesResponse {
+  enfermedades!: EnfermedadLookupModel[] | undefined;
 
   init(_data?: any) {
     if (_data) {
@@ -3590,27 +3279,14 @@ export class GetEnfermedadesResponse implements IGetEnfermedadesResponse {
   }
 }
 
-export interface IGetEnfermedadesResponse {
-  enfermedades?: EnfermedadLookupModel[] | null;
-}
-
-export class EnfermedadLookupModel implements IEnfermedadLookupModel {
-  id?: number;
-  nombre?: string | null;
-
-  constructor(data?: IEnfermedadLookupModel) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class EnfermedadLookupModel {
+  id!: number;
+  nombre!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
+      this.id = _data["id"];
+      this.nombre = _data["nombre"];
     }
   }
 
@@ -3623,29 +3299,30 @@ export class EnfermedadLookupModel implements IEnfermedadLookupModel {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
+    data["id"] = this.id;
+    data["nombre"] = this.nombre;
     return data;
   }
 }
 
-export interface IEnfermedadLookupModel {
-  id?: number;
-  nombre?: string | null;
+export class DeleteEnfermedadResponse {
+  init(_data?: any) {}
+
+  static fromJS(data: any): DeleteEnfermedadResponse {
+    data = typeof data === "object" ? data : {};
+    let result = new DeleteEnfermedadResponse();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    return data;
+  }
 }
 
-export class GetEtapaFenologicaListResponse
-  implements IGetEtapaFenologicaListResponse {
-  etapas?: EtapaLookUpModel[] | null;
-
-  constructor(data?: IGetEtapaFenologicaListResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class GetEtapaFenologicaListResponse {
+  etapas!: EtapaLookUpModel[] | undefined;
 
   init(_data?: any) {
     if (_data) {
@@ -3674,27 +3351,14 @@ export class GetEtapaFenologicaListResponse
   }
 }
 
-export interface IGetEtapaFenologicaListResponse {
-  etapas?: EtapaLookUpModel[] | null;
-}
-
-export class EtapaLookUpModel implements IEtapaLookUpModel {
-  id?: number;
-  nombre?: string | null;
-
-  constructor(data?: IEtapaLookUpModel) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class EtapaLookUpModel {
+  id!: number;
+  nombre!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
+      this.id = _data["id"];
+      this.nombre = _data["nombre"];
     }
   }
 
@@ -3707,28 +3371,30 @@ export class EtapaLookUpModel implements IEtapaLookUpModel {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
+    data["id"] = this.id;
+    data["nombre"] = this.nombre;
     return data;
   }
 }
 
-export interface IEtapaLookUpModel {
-  id?: number;
-  nombre?: string | null;
+export class DeleteEtapaFenologicaResponse {
+  init(_data?: any) {}
+
+  static fromJS(data: any): DeleteEtapaFenologicaResponse {
+    data = typeof data === "object" ? data : {};
+    let result = new DeleteEtapaFenologicaResponse();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    return data;
+  }
 }
 
-export class GetPlagasResponse implements IGetPlagasResponse {
-  plagas?: PlagaLookupModel[] | null;
-
-  constructor(data?: IGetPlagasResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class GetPlagasResponse {
+  plagas!: PlagaLookupModel[] | undefined;
 
   init(_data?: any) {
     if (_data) {
@@ -3757,27 +3423,14 @@ export class GetPlagasResponse implements IGetPlagasResponse {
   }
 }
 
-export interface IGetPlagasResponse {
-  plagas?: PlagaLookupModel[] | null;
-}
-
-export class PlagaLookupModel implements IPlagaLookupModel {
-  id?: number;
-  nombre?: string | null;
-
-  constructor(data?: IPlagaLookupModel) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class PlagaLookupModel {
+  id!: number;
+  nombre!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
+      this.id = _data["id"];
+      this.nombre = _data["nombre"];
     }
   }
 
@@ -3790,28 +3443,30 @@ export class PlagaLookupModel implements IPlagaLookupModel {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
+    data["id"] = this.id;
+    data["nombre"] = this.nombre;
     return data;
   }
 }
 
-export interface IPlagaLookupModel {
-  id?: number;
-  nombre?: string | null;
+export class DeletePlagaResponse {
+  init(_data?: any) {}
+
+  static fromJS(data: any): DeletePlagaResponse {
+    data = typeof data === "object" ? data : {};
+    let result = new DeletePlagaResponse();
+    result.init(data);
+    return result;
+  }
+
+  toJSON(data?: any) {
+    data = typeof data === "object" ? data : {};
+    return data;
+  }
 }
 
-export class GetUsuariosListResponse implements IGetUsuariosListResponse {
-  usuarios?: UsuarioLookupModel[] | null;
-
-  constructor(data?: IGetUsuariosListResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class GetUsuariosListResponse {
+  usuarios!: UsuarioLookupModel[] | undefined;
 
   init(_data?: any) {
     if (_data) {
@@ -3840,50 +3495,26 @@ export class GetUsuariosListResponse implements IGetUsuariosListResponse {
   }
 }
 
-export interface IGetUsuariosListResponse {
-  usuarios?: UsuarioLookupModel[] | null;
-}
-
-export class UsuarioLookupModel implements IUsuarioLookupModel {
-  id?: number;
-  nombreUsuario?: string | null;
-  email?: string | null;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-  tipoUsuario?: TiposUsuario;
-  confirmado?: boolean;
-
-  constructor(data?: IUsuarioLookupModel) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class UsuarioLookupModel {
+  id!: number;
+  nombreUsuario!: string | undefined;
+  email!: string | undefined;
+  nombre!: string | undefined;
+  apellidoPaterno!: string | undefined;
+  apellidoMaterno!: string | undefined;
+  tipoUsuario!: TiposUsuario;
+  confirmado!: boolean;
 
   init(_data?: any) {
     if (_data) {
-      this.id = _data["id"] !== undefined ? _data["id"] : <any>null;
-      this.nombreUsuario =
-        _data["nombreUsuario"] !== undefined
-          ? _data["nombreUsuario"]
-          : <any>null;
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
-      this.apellidoPaterno =
-        _data["apellidoPaterno"] !== undefined
-          ? _data["apellidoPaterno"]
-          : <any>null;
-      this.apellidoMaterno =
-        _data["apellidoMaterno"] !== undefined
-          ? _data["apellidoMaterno"]
-          : <any>null;
-      this.tipoUsuario =
-        _data["tipoUsuario"] !== undefined ? _data["tipoUsuario"] : <any>null;
-      this.confirmado =
-        _data["confirmado"] !== undefined ? _data["confirmado"] : <any>null;
+      this.id = _data["id"];
+      this.nombreUsuario = _data["nombreUsuario"];
+      this.email = _data["email"];
+      this.nombre = _data["nombre"];
+      this.apellidoPaterno = _data["apellidoPaterno"];
+      this.apellidoMaterno = _data["apellidoMaterno"];
+      this.tipoUsuario = _data["tipoUsuario"];
+      this.confirmado = _data["confirmado"];
     }
   }
 
@@ -3896,72 +3527,36 @@ export class UsuarioLookupModel implements IUsuarioLookupModel {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["id"] = this.id !== undefined ? this.id : <any>null;
-    data["nombreUsuario"] =
-      this.nombreUsuario !== undefined ? this.nombreUsuario : <any>null;
-    data["email"] = this.email !== undefined ? this.email : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
-    data["apellidoPaterno"] =
-      this.apellidoPaterno !== undefined ? this.apellidoPaterno : <any>null;
-    data["apellidoMaterno"] =
-      this.apellidoMaterno !== undefined ? this.apellidoMaterno : <any>null;
-    data["tipoUsuario"] =
-      this.tipoUsuario !== undefined ? this.tipoUsuario : <any>null;
-    data["confirmado"] =
-      this.confirmado !== undefined ? this.confirmado : <any>null;
+    data["id"] = this.id;
+    data["nombreUsuario"] = this.nombreUsuario;
+    data["email"] = this.email;
+    data["nombre"] = this.nombre;
+    data["apellidoPaterno"] = this.apellidoPaterno;
+    data["apellidoMaterno"] = this.apellidoMaterno;
+    data["tipoUsuario"] = this.tipoUsuario;
+    data["confirmado"] = this.confirmado;
     return data;
   }
 }
 
-export interface IUsuarioLookupModel {
-  id?: number;
-  nombreUsuario?: string | null;
-  email?: string | null;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-  tipoUsuario?: TiposUsuario;
-  confirmado?: boolean;
-}
-
-export class GetUsuarioDetailResponse implements IGetUsuarioDetailResponse {
-  idUsuario?: number;
-  nombreUsuario?: string | null;
-  email?: string | null;
-  tipoUsuario?: TiposUsuario;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-
-  constructor(data?: IGetUsuarioDetailResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class GetUsuarioDetailResponse {
+  idUsuario!: number;
+  nombreUsuario!: string | undefined;
+  email!: string | undefined;
+  tipoUsuario!: TiposUsuario;
+  nombre!: string | undefined;
+  apellidoPaterno!: string | undefined;
+  apellidoMaterno!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.idUsuario =
-        _data["idUsuario"] !== undefined ? _data["idUsuario"] : <any>null;
-      this.nombreUsuario =
-        _data["nombreUsuario"] !== undefined
-          ? _data["nombreUsuario"]
-          : <any>null;
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
-      this.tipoUsuario =
-        _data["tipoUsuario"] !== undefined ? _data["tipoUsuario"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
-      this.apellidoPaterno =
-        _data["apellidoPaterno"] !== undefined
-          ? _data["apellidoPaterno"]
-          : <any>null;
-      this.apellidoMaterno =
-        _data["apellidoMaterno"] !== undefined
-          ? _data["apellidoMaterno"]
-          : <any>null;
+      this.idUsuario = _data["idUsuario"];
+      this.nombreUsuario = _data["nombreUsuario"];
+      this.email = _data["email"];
+      this.tipoUsuario = _data["tipoUsuario"];
+      this.nombre = _data["nombre"];
+      this.apellidoPaterno = _data["apellidoPaterno"];
+      this.apellidoMaterno = _data["apellidoMaterno"];
     }
   }
 
@@ -3974,42 +3569,18 @@ export class GetUsuarioDetailResponse implements IGetUsuarioDetailResponse {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["idUsuario"] =
-      this.idUsuario !== undefined ? this.idUsuario : <any>null;
-    data["nombreUsuario"] =
-      this.nombreUsuario !== undefined ? this.nombreUsuario : <any>null;
-    data["email"] = this.email !== undefined ? this.email : <any>null;
-    data["tipoUsuario"] =
-      this.tipoUsuario !== undefined ? this.tipoUsuario : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
-    data["apellidoPaterno"] =
-      this.apellidoPaterno !== undefined ? this.apellidoPaterno : <any>null;
-    data["apellidoMaterno"] =
-      this.apellidoMaterno !== undefined ? this.apellidoMaterno : <any>null;
+    data["idUsuario"] = this.idUsuario;
+    data["nombreUsuario"] = this.nombreUsuario;
+    data["email"] = this.email;
+    data["tipoUsuario"] = this.tipoUsuario;
+    data["nombre"] = this.nombre;
+    data["apellidoPaterno"] = this.apellidoPaterno;
+    data["apellidoMaterno"] = this.apellidoMaterno;
     return data;
   }
 }
 
-export interface IGetUsuarioDetailResponse {
-  idUsuario?: number;
-  nombreUsuario?: string | null;
-  email?: string | null;
-  tipoUsuario?: TiposUsuario;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-}
-
-export class AproveUsuarioResponse implements IAproveUsuarioResponse {
-  constructor(data?: IAproveUsuarioResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
-
+export class AproveUsuarioResponse {
   init(_data?: any) {}
 
   static fromJS(data: any): AproveUsuarioResponse {
@@ -4025,18 +3596,7 @@ export class AproveUsuarioResponse implements IAproveUsuarioResponse {
   }
 }
 
-export interface IAproveUsuarioResponse {}
-
-export class DeleteUsuarioResponse implements IDeleteUsuarioResponse {
-  constructor(data?: IDeleteUsuarioResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
-
+export class DeleteUsuarioResponse {
   init(_data?: any) {}
 
   static fromJS(data: any): DeleteUsuarioResponse {
@@ -4052,37 +3612,18 @@ export class DeleteUsuarioResponse implements IDeleteUsuarioResponse {
   }
 }
 
-export interface IDeleteUsuarioResponse {}
-
-export class ModificarDatosUsuarioResponse
-  implements IModificarDatosUsuarioResponse {
-  idUsuario?: number;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-
-  constructor(data?: IModificarDatosUsuarioResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ModificarDatosUsuarioResponse {
+  idUsuario!: number;
+  nombre!: string | undefined;
+  apellidoPaterno!: string | undefined;
+  apellidoMaterno!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.idUsuario =
-        _data["idUsuario"] !== undefined ? _data["idUsuario"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
-      this.apellidoPaterno =
-        _data["apellidoPaterno"] !== undefined
-          ? _data["apellidoPaterno"]
-          : <any>null;
-      this.apellidoMaterno =
-        _data["apellidoMaterno"] !== undefined
-          ? _data["apellidoMaterno"]
-          : <any>null;
+      this.idUsuario = _data["idUsuario"];
+      this.nombre = _data["nombre"];
+      this.apellidoPaterno = _data["apellidoPaterno"];
+      this.apellidoMaterno = _data["apellidoMaterno"];
     }
   }
 
@@ -4095,53 +3636,26 @@ export class ModificarDatosUsuarioResponse
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["idUsuario"] =
-      this.idUsuario !== undefined ? this.idUsuario : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
-    data["apellidoPaterno"] =
-      this.apellidoPaterno !== undefined ? this.apellidoPaterno : <any>null;
-    data["apellidoMaterno"] =
-      this.apellidoMaterno !== undefined ? this.apellidoMaterno : <any>null;
+    data["idUsuario"] = this.idUsuario;
+    data["nombre"] = this.nombre;
+    data["apellidoPaterno"] = this.apellidoPaterno;
+    data["apellidoMaterno"] = this.apellidoMaterno;
     return data;
   }
 }
 
-export interface IModificarDatosUsuarioResponse {
-  idUsuario?: number;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-}
-
-export class ModificarDatosUsuarioCommand
-  implements IModificarDatosUsuarioCommand {
-  idUsuario?: number;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-
-  constructor(data?: IModificarDatosUsuarioCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ModificarDatosUsuarioCommand {
+  idUsuario!: number;
+  nombre!: string | undefined;
+  apellidoPaterno!: string | undefined;
+  apellidoMaterno!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.idUsuario =
-        _data["idUsuario"] !== undefined ? _data["idUsuario"] : <any>null;
-      this.nombre = _data["nombre"] !== undefined ? _data["nombre"] : <any>null;
-      this.apellidoPaterno =
-        _data["apellidoPaterno"] !== undefined
-          ? _data["apellidoPaterno"]
-          : <any>null;
-      this.apellidoMaterno =
-        _data["apellidoMaterno"] !== undefined
-          ? _data["apellidoMaterno"]
-          : <any>null;
+      this.idUsuario = _data["idUsuario"];
+      this.nombre = _data["nombre"];
+      this.apellidoPaterno = _data["apellidoPaterno"];
+      this.apellidoMaterno = _data["apellidoMaterno"];
     }
   }
 
@@ -4154,39 +3668,20 @@ export class ModificarDatosUsuarioCommand
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["idUsuario"] =
-      this.idUsuario !== undefined ? this.idUsuario : <any>null;
-    data["nombre"] = this.nombre !== undefined ? this.nombre : <any>null;
-    data["apellidoPaterno"] =
-      this.apellidoPaterno !== undefined ? this.apellidoPaterno : <any>null;
-    data["apellidoMaterno"] =
-      this.apellidoMaterno !== undefined ? this.apellidoMaterno : <any>null;
+    data["idUsuario"] = this.idUsuario;
+    data["nombre"] = this.nombre;
+    data["apellidoPaterno"] = this.apellidoPaterno;
+    data["apellidoMaterno"] = this.apellidoMaterno;
     return data;
   }
 }
 
-export interface IModificarDatosUsuarioCommand {
-  idUsuario?: number;
-  nombre?: string | null;
-  apellidoPaterno?: string | null;
-  apellidoMaterno?: string | null;
-}
-
-export class ModificarEmailResponse implements IModificarEmailResponse {
-  email?: string | null;
-
-  constructor(data?: IModificarEmailResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ModificarEmailResponse {
+  email!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
+      this.email = _data["email"];
     }
   }
 
@@ -4199,34 +3694,19 @@ export class ModificarEmailResponse implements IModificarEmailResponse {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["email"] = this.email !== undefined ? this.email : <any>null;
+    data["email"] = this.email;
     return data;
   }
 }
 
-export interface IModificarEmailResponse {
-  email?: string | null;
-}
-
-export class ModificarEmailCommand implements IModificarEmailCommand {
-  nuevoEmail?: string | null;
-  password?: string | null;
-
-  constructor(data?: IModificarEmailCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ModificarEmailCommand {
+  nuevoEmail!: string | undefined;
+  password!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.nuevoEmail =
-        _data["nuevoEmail"] !== undefined ? _data["nuevoEmail"] : <any>null;
-      this.password =
-        _data["password"] !== undefined ? _data["password"] : <any>null;
+      this.nuevoEmail = _data["nuevoEmail"];
+      this.password = _data["password"];
     }
   }
 
@@ -4239,30 +3719,19 @@ export class ModificarEmailCommand implements IModificarEmailCommand {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["nuevoEmail"] =
-      this.nuevoEmail !== undefined ? this.nuevoEmail : <any>null;
-    data["password"] = this.password !== undefined ? this.password : <any>null;
+    data["nuevoEmail"] = this.nuevoEmail;
+    data["password"] = this.password;
     return data;
   }
 }
 
-export interface IModificarEmailCommand {
-  nuevoEmail?: string | null;
-  password?: string | null;
-}
-
-export class ModificarPasswordResponse extends NotificationResponse
-  implements IModificarPasswordResponse {
-  email?: string | null;
-
-  constructor(data?: IModificarPasswordResponse) {
-    super(data);
-  }
+export class ModificarPasswordResponse extends NotificationResponse {
+  email!: string | undefined;
 
   init(_data?: any) {
     super.init(_data);
     if (_data) {
-      this.email = _data["email"] !== undefined ? _data["email"] : <any>null;
+      this.email = _data["email"];
     }
   }
 
@@ -4275,39 +3744,20 @@ export class ModificarPasswordResponse extends NotificationResponse
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["email"] = this.email !== undefined ? this.email : <any>null;
+    data["email"] = this.email;
     super.toJSON(data);
     return data;
   }
 }
 
-export interface IModificarPasswordResponse extends INotificationResponse {
-  email?: string | null;
-}
-
-export class ModificarPasswordCommand implements IModificarPasswordCommand {
-  passwordActual?: string | null;
-  passwordNuevo?: string | null;
-
-  constructor(data?: IModificarPasswordCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class ModificarPasswordCommand {
+  passwordActual!: string | undefined;
+  passwordNuevo!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.passwordActual =
-        _data["passwordActual"] !== undefined
-          ? _data["passwordActual"]
-          : <any>null;
-      this.passwordNuevo =
-        _data["passwordNuevo"] !== undefined
-          ? _data["passwordNuevo"]
-          : <any>null;
+      this.passwordActual = _data["passwordActual"];
+      this.passwordNuevo = _data["passwordNuevo"];
     }
   }
 
@@ -4320,30 +3770,13 @@ export class ModificarPasswordCommand implements IModificarPasswordCommand {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["passwordActual"] =
-      this.passwordActual !== undefined ? this.passwordActual : <any>null;
-    data["passwordNuevo"] =
-      this.passwordNuevo !== undefined ? this.passwordNuevo : <any>null;
+    data["passwordActual"] = this.passwordActual;
+    data["passwordNuevo"] = this.passwordNuevo;
     return data;
   }
 }
 
-export interface IModificarPasswordCommand {
-  passwordActual?: string | null;
-  passwordNuevo?: string | null;
-}
-
-export class AgregarImagenPerfilResponse
-  implements IAgregarImagenPerfilResponse {
-  constructor(data?: IAgregarImagenPerfilResponse) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
-
+export class AgregarImagenPerfilResponse {
   init(_data?: any) {}
 
   static fromJS(data: any): AgregarImagenPerfilResponse {
@@ -4359,23 +3792,12 @@ export class AgregarImagenPerfilResponse
   }
 }
 
-export interface IAgregarImagenPerfilResponse {}
-
-export class AgregarImagenPerfilCommand implements IAgregarImagenPerfilCommand {
-  imagen?: string | null;
-
-  constructor(data?: IAgregarImagenPerfilCommand) {
-    if (data) {
-      for (var property in data) {
-        if (data.hasOwnProperty(property))
-          (<any>this)[property] = (<any>data)[property];
-      }
-    }
-  }
+export class AgregarImagenPerfilCommand {
+  imagen!: string | undefined;
 
   init(_data?: any) {
     if (_data) {
-      this.imagen = _data["imagen"] !== undefined ? _data["imagen"] : <any>null;
+      this.imagen = _data["imagen"];
     }
   }
 
@@ -4388,13 +3810,9 @@ export class AgregarImagenPerfilCommand implements IAgregarImagenPerfilCommand {
 
   toJSON(data?: any) {
     data = typeof data === "object" ? data : {};
-    data["imagen"] = this.imagen !== undefined ? this.imagen : <any>null;
+    data["imagen"] = this.imagen;
     return data;
   }
-}
-
-export interface IAgregarImagenPerfilCommand {
-  imagen?: string | null;
 }
 
 export enum MySize {

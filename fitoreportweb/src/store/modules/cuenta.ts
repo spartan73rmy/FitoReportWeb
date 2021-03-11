@@ -190,10 +190,7 @@ const actions = {
   },
   async [REFRESH_CREDENTIALS]({ commit }) {
     const response = await api.refreshCredentials(
-      new RefreshCredentialsCommand({
-        refreshToken: refreshToken(),
-        token: getToken(),
-      })
+      new RefreshCredentialsCommand()
     );
     commit(SET_AUTH, response);
     return buildSuccess(response, commit);
